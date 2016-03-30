@@ -1,29 +1,23 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory client store
+    /// Couchbase client store
     /// </summary>
     public class CouchbaseClientStore : IClientStore
     {
-        readonly IEnumerable<Client> _clients;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CouchbaseClientStore"/> class.
-        /// </summary>
-        /// <param name="clients">The clients.</param>
-        public CouchbaseClientStore(IEnumerable<Client> clients)
+        readonly IBucketContext _context;
+        
+        public CouchbaseClientStore(IBucketContext context)
         {
-            _clients = clients;
+            _context = context;
         }
+
 
         /// <summary>
         /// Finds a client by id
@@ -35,9 +29,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task<Client> FindClientByIdAsync(string clientId)
         {
             var query =
-                from client in _clients
-                where client.ClientId == clientId && client.Enabled
-                select client;
+                from client in _context.Query<CouchbaseWrapper<Client>>()
+                where client.Model.ClientId == clientId && client.Model.Enabled
+                select client.Model;
             
             return Task.FromResult(query.SingleOrDefault());
         }

@@ -1,20 +1,29 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Core;
+using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory consent store
+    /// Couchbase consent store
     /// </summary>
     public class CouchbaseConsentStore : IConsentStore
     {
         private readonly List<Consent> _consents = new List<Consent>();
+
+        readonly IBucket _bucket;
+        readonly IBucketContext _context;
+
+        public CouchbaseConsentStore(IBucket bucket, IBucketContext context)
+        {
+            _bucket = bucket;
+            _context = context;
+        }
+
 
         /// <summary>
         /// Loads all permissions the subject has granted to all clients.
@@ -24,9 +33,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task<IEnumerable<Consent>> LoadAllAsync(string subject)
         {
             var query =
-                from c in _consents
-                where c.Subject == subject
-                select c;
+                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                where c.Model.Subject == subject
+                select c.Model;
             return Task.FromResult<IEnumerable<Consent>>(query.ToArray());
         }
 
@@ -39,9 +48,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task<Consent> LoadAsync(string subject, string client)
         {
             var query =
-                from c in _consents
-                where c.Subject == subject && c.ClientId == client
-                select c;
+                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                where c.Model.Subject == subject && c.Model.ClientId == client
+                select c.Model;
             return Task.FromResult(query.SingleOrDefault());
         }
 
@@ -57,9 +66,10 @@ namespace IdentityServer4.Couchbase.Services
             consent.Scopes = consent.Scopes.ToArray();
 
             var query =
-                from c in _consents
-                where c.Subject == consent.Subject && c.ClientId == consent.ClientId
-                select c;
+                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                where c.Model.Subject == consent.Subject && c.Model.ClientId == consent.ClientId
+                select c.Model;
+
             var item = query.SingleOrDefault();
             if (item != null)
             {
@@ -81,9 +91,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task RevokeAsync(string subject, string client)
         {
             var query =
-                from c in _consents
-                where c.Subject == subject && c.ClientId == client
-                select c;
+                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                where c.Model.Subject == subject && c.Model.ClientId == client
+                select c.Model;
             var item = query.SingleOrDefault();
             if (item != null)
             {

@@ -1,21 +1,15 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Couchbase;
 using Couchbase.Core;
 using Couchbase.Linq;
-using IdentityServer4.Core.Extensions;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory authorization code store
+    /// Couchbase authorization code store
     /// </summary>
     public class CouchbaseAuthorizationCodeStore : IAuthorizationCodeStore
     {
@@ -27,8 +21,7 @@ namespace IdentityServer4.Couchbase.Services
             _bucket = bucket;
             _context = context;
         }
-
-
+        
         /// <summary>
         /// Stores the data.
         /// </summary>
@@ -89,11 +82,11 @@ namespace IdentityServer4.Couchbase.Services
             var query =
                 from item in _context.Query<CouchbaseWrapper<AuthorizationCode>>()
                 where item.Model.Subject.GetSubjectId() == subject && item.Model.ClientId == client
-                select item;
+                select item.Id;
 
-            foreach (var item in query)
-            {                
-                _bucket.RemoveAsync(item.Id);
+            foreach (var key in query)
+            {
+                RemoveAsync(key);
             }
 
             return Task.FromResult(0);

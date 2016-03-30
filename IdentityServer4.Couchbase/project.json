@@ -13,7 +13,8 @@
     "net451": {
       "dependencies": {
         "CouchbaseNetClient": "2.2.6",
-        "Linq2Couchbase": "1.0.2"
+        "Linq2Couchbase": "1.0.2",
+        "Remotion.Linq": "1.15.15"
       }
     }
   }

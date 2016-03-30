@@ -1,21 +1,27 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Core;
+using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory token handle store
+    /// Couchbase token handle store
     /// </summary>
     public class CouchbaseTokenHandleStore : ITokenHandleStore
     {
-        readonly ConcurrentDictionary<string, Token> _repository = new ConcurrentDictionary<string, Token>();
+        readonly IBucket _bucket;
+        readonly IBucketContext _context;
+
+        public CouchbaseTokenHandleStore(IBucket bucket, IBucketContext context)
+        {
+            _bucket = bucket;
+            _context = context;
+        }
+
 
         /// <summary>
         /// Stores the data.
@@ -25,9 +31,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task StoreAsync(string key, Token value)
         {
-            _repository[key] = value;
-
-            return Task.FromResult<object>(null);
+            return _bucket.InsertAsync(key, new CouchbaseWrapper<Token>(key, value));
         }
 
         /// <summary>
@@ -35,15 +39,10 @@ namespace IdentityServer4.Couchbase.Services
         /// </summary>
         /// <param name="key">The key.</param>
         /// <returns></returns>
-        public Task<Token> GetAsync(string key)
+        public async Task<Token> GetAsync(string key)
         {
-            Token token;
-            if (_repository.TryGetValue(key, out token))
-            {
-                return Task.FromResult(token);
-            }
-
-            return Task.FromResult<Token>(null);
+            var result = await _bucket.GetAsync<CouchbaseWrapper<Token>>(key);
+            return result.Success ? result.Value.Model : null;
         }
 
         /// <summary>
@@ -53,10 +52,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task RemoveAsync(string key)
         {
-            Token token;
-            _repository.TryRemove(key, out token);
-
-            return Task.FromResult<object>(null);
+            return _bucket.RemoveAsync(key);
         }
 
         /// <summary>
@@ -69,9 +65,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task<IEnumerable<ITokenMetadata>> GetAllAsync(string subject)
         {
             var query =
-                from item in _repository
-                where item.Value.SubjectId == subject
-                select item.Value;
+                from item in _context.Query<CouchbaseWrapper<Token>>()
+                where item.Model.SubjectId == subject
+                select item.Model;
             var list = query.ToArray();
             return Task.FromResult(list.Cast<ITokenMetadata>());
         }
@@ -85,9 +81,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task RevokeAsync(string subject, string client)
         {
             var query =
-                from item in _repository
-                where item.Value.SubjectId == subject && item.Value.ClientId == client
-                select item.Key;
+                from item in _context.Query<CouchbaseWrapper<Token>>()
+                where item.Model.SubjectId == subject && item.Model.ClientId == client
+                select item.Id;
 
             foreach (var key in query)
             {

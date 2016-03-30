@@ -1,21 +1,30 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Core;
+using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory refresh token store
+    /// Couchbase refresh token store
     /// </summary>
     public class CouchbaseRefreshTokenStore : IRefreshTokenStore
     {
         readonly ConcurrentDictionary<string, RefreshToken> _repository = new ConcurrentDictionary<string, RefreshToken>();
+
+        readonly IBucket _bucket;
+        readonly IBucketContext _context;
+
+        public CouchbaseRefreshTokenStore(IBucket bucket, IBucketContext context)
+        {
+            _bucket = bucket;
+            _context = context;
+        }
+
 
         /// <summary>
         /// Stores the data.
@@ -25,9 +34,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task StoreAsync(string key, RefreshToken value)
         {
-            _repository[key] = value;
-
-            return Task.FromResult<object>(null);
+            return _bucket.InsertAsync(key, new CouchbaseWrapper<RefreshToken>(key, value));
         }
 
         /// <summary>
@@ -35,15 +42,10 @@ namespace IdentityServer4.Couchbase.Services
         /// </summary>
         /// <param name="key">The key.</param>
         /// <returns></returns>
-        public Task<RefreshToken> GetAsync(string key)
+        public async Task<RefreshToken> GetAsync(string key)
         {
-            RefreshToken code;
-            if (_repository.TryGetValue(key, out code))
-            {
-                return Task.FromResult(code);
-            }
-
-            return Task.FromResult<RefreshToken>(null);
+            var result = await _bucket.GetAsync<CouchbaseWrapper<RefreshToken>>(key);
+            return result.Success ? result.Value.Model : null;
         }
 
         /// <summary>
@@ -53,10 +55,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task RemoveAsync(string key)
         {
-            RefreshToken val;
-            _repository.TryRemove(key, out val);
-
-            return Task.FromResult<object>(null);
+            return _bucket.RemoveAsync(key);
         }
 
 
@@ -70,9 +69,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task<IEnumerable<ITokenMetadata>> GetAllAsync(string subject)
         {
             var query =
-                from item in _repository
-                where item.Value.SubjectId == subject
-                select item.Value;
+                from item in _context.Query<CouchbaseWrapper<RefreshToken>>()
+                where item.Model.SubjectId == subject
+                select item.Model;
             var list = query.ToArray();
             return Task.FromResult(list.Cast<ITokenMetadata>());
         }
@@ -86,9 +85,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task RevokeAsync(string subject, string client)
         {
             var query =
-                from item in _repository
-                where item.Value.SubjectId == subject && item.Value.ClientId == client
-                select item.Key;
+                from item in _context.Query<CouchbaseWrapper<RefreshToken>>()
+                where item.Model.SubjectId == subject && item.Model.ClientId == client
+                select item.Id;
             
             foreach(var key in query)
             {

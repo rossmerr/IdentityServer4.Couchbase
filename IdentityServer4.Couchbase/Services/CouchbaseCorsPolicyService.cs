@@ -1,10 +1,8 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 using Microsoft.Extensions.Logging;
@@ -16,17 +14,17 @@ namespace IdentityServer4.Couchbase.Services
     /// </summary>
     public class CouchbaseCorsPolicyService : ICorsPolicyService
     {
-        private readonly ILogger<CouchbaseCorsPolicyService> _logger;
-        private readonly IEnumerable<Client> _clients;
+        readonly ILogger<CouchbaseCorsPolicyService> _logger;
+        readonly IBucketContext _context;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CouchbaseCorsPolicyService"/> class.
         /// </summary>
         /// <param name="clients">The clients.</param>
-        public CouchbaseCorsPolicyService(ILogger<CouchbaseCorsPolicyService> logger, IEnumerable<Client> clients)
+        public CouchbaseCorsPolicyService(ILogger<CouchbaseCorsPolicyService> logger, IBucketContext context)
         {
             _logger = logger;
-            _clients = clients ?? Enumerable.Empty<Client>();
+            _context = context;
         }
 
         /// <summary>
@@ -37,8 +35,8 @@ namespace IdentityServer4.Couchbase.Services
         public Task<bool> IsOriginAllowedAsync(string origin)
         {
             var query =
-                from client in _clients
-                from url in client.AllowedCorsOrigins
+                from client in _context.Query<CouchbaseWrapper<Client>>()
+                from url in client.Model.AllowedCorsOrigins
                 select url.GetOrigin();
 
             var result = query.Contains(origin, StringComparer.OrdinalIgnoreCase);

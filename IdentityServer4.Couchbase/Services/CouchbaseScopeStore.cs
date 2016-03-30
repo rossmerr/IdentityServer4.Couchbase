@@ -1,29 +1,27 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory scope store
+    /// Couchbase scope store
     /// </summary>
     public class CouchbaseScopeStore : IScopeStore
     {
-        readonly IEnumerable<Scope> _scopes;
+        readonly IBucketContext _context;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CouchbaseScopeStore"/> class.
         /// </summary>
         /// <param name="scopes">The scopes.</param>
-        public CouchbaseScopeStore(IEnumerable<Scope> scopes)
+        public CouchbaseScopeStore(IBucketContext context)
         {
-            _scopes = scopes;
+            _context = context;
         }
 
         /// <summary>
@@ -36,9 +34,9 @@ namespace IdentityServer4.Couchbase.Services
         {
             if (scopeNames == null) throw new ArgumentNullException("scopeNames");
             
-            var scopes = from s in _scopes
-                         where scopeNames.ToList().Contains(s.Name)
-                         select s;
+            var scopes = from s in _context.Query<CouchbaseWrapper<Scope>>()
+                         where scopeNames.ToList().Contains(s.Model.Name)
+                         select s.Model;
 
             return Task.FromResult<IEnumerable<Scope>>(scopes.ToList());
         }
@@ -54,10 +52,14 @@ namespace IdentityServer4.Couchbase.Services
         {
             if (publicOnly)
             {
-                return Task.FromResult(_scopes.Where(s => s.ShowInDiscoveryDocument));
+                var scopes = from s in _context.Query<CouchbaseWrapper<Scope>>()
+                             where s.Model.ShowInDiscoveryDocument
+                             select s.Model;
+
+                return Task.FromResult<IEnumerable<Scope>>(scopes.ToList());
             }
 
-            return Task.FromResult(_scopes);
+            return Task.FromResult<IEnumerable<Scope>>(_context.Query<CouchbaseWrapper<Scope>>().Select(p => p.Model).ToList());
         }
     }
 }

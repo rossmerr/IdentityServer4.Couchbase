@@ -1,25 +1,26 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Linq;
 using IdentityServer4.Core.Validation;
 
 namespace IdentityServer4.Couchbase.Services
 {
     public class CouchbaseResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
     {
-        private readonly List<CouchbaseUser> _users;
+        readonly IBucketContext _context;
 
-        public CouchbaseResourceOwnerPasswordValidator(List<CouchbaseUser> users)
+        public CouchbaseResourceOwnerPasswordValidator(IBucketContext context)
         {
-            _users = users;
+            _context = context;
         }
 
         public Task<CustomGrantValidationResult> ValidateAsync(string userName, string password, ValidatedTokenRequest request)
         {
             var query =
-                from u in _users
-                where u.Username == userName && u.Password == password
-                select u;
+                from u in _context.Query<CouchbaseWrapper<CouchbaseUser>>()
+                where u.Model.Username == userName && u.Model.Password == password
+                select u.Model;
 
             var user = query.SingleOrDefault();
             if (user != null)

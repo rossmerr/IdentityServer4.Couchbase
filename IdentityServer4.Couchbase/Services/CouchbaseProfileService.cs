@@ -1,11 +1,9 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Couchbase.Linq;
 using IdentityModel;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
@@ -13,19 +11,19 @@ using IdentityServer4.Core.Services;
 namespace IdentityServer4.Couchbase.Services
 {
     /// <summary>
-    /// In-memory user service
+    /// Couchbase user service
     /// </summary>
     public class CouchbaseProfileService : IProfileService
     {
-        readonly List<CouchbaseUser> _users;
+        readonly IBucketContext _context;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InMemoryUserService"/> class.
+        /// Initializes a new instance of the <see cref="CouchbaseProfileService"/> class.
         /// </summary>
         /// <param name="users">The users.</param>
-        public CouchbaseProfileService(List<CouchbaseUser> users)
+        public CouchbaseProfileService(IBucketContext context)
         {
-            _users = users;
+            _context = context;
         }
 
         /// <summary>
@@ -36,9 +34,9 @@ namespace IdentityServer4.Couchbase.Services
         public Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
             var query =
-                from u in _users
-                where u.Subject == context.Subject.GetSubjectId()
-                select u;
+                from u in _context.Query<CouchbaseWrapper<CouchbaseUser>>()
+                where u.Model.Subject == context.Subject.GetSubjectId()
+                select u.Model;
             var user = query.Single();
 
             var claims = new List<Claim>{
@@ -67,10 +65,10 @@ namespace IdentityServer4.Couchbase.Services
             if (context.Subject == null) throw new ArgumentNullException("subject");
 
             var query =
-                from u in _users
+                from u in _context.Query<CouchbaseWrapper<CouchbaseUser>>()
                 where
-                    u.Subject == context.Subject.GetSubjectId()
-                select u;
+                    u.Model.Subject == context.Subject.GetSubjectId()
+                select u.Model;
 
             var user = query.SingleOrDefault();
             

@@ -1,6 +1,6 @@
 ﻿namespace IdentityServer4.Couchbase.Services
 {
-    internal class CouchbaseWrapper<TEntity>
+    class CouchbaseWrapper<TEntity>
     {
         public CouchbaseWrapper(string id, TEntity model)
         {
