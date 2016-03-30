@@ -24,7 +24,7 @@ namespace IdentityServer4.Couchbase.Services
         /// </summary>
         /// <param name="clientId">The client id</param>
         /// <returns>
-        /// The client
+        /// The client  
         /// </returns>
         public Task<Client> FindClientByIdAsync(string clientId)
         {
