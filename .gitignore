@@ -47,3 +47,4 @@ Temporary Items
 .apdisk
 *.lock.json
 *.xproj.user
+*.vs
