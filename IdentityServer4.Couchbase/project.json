@@ -1,0 +1,20 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "IdentityServer4.Couchbase Class Library",
+  "authors": [ "ross" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "dependencies": {
+    "IdentityServer4": "1.0.0-beta1-update1",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
+  },
+  "frameworks": {
+    "net451": {
+      "dependencies": {
+        "CouchbaseNetClient": "2.2.6",
+        "Linq2Couchbase": "1.0.2"
+      }
+    }
+  }
+}
