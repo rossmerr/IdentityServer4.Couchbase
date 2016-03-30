@@ -14,8 +14,6 @@ namespace IdentityServer4.Couchbase.Services
     /// </summary>
     public class CouchbaseRefreshTokenStore : IRefreshTokenStore
     {
-        readonly ConcurrentDictionary<string, RefreshToken> _repository = new ConcurrentDictionary<string, RefreshToken>();
-
         readonly IBucket _bucket;
         readonly IBucketContext _context;
 

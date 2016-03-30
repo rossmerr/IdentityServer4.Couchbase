@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Couchbase.Core;
@@ -13,8 +14,6 @@ namespace IdentityServer4.Couchbase.Services
     /// </summary>
     public class CouchbaseConsentStore : IConsentStore
     {
-        private readonly List<Consent> _consents = new List<Consent>();
-
         readonly IBucket _bucket;
         readonly IBucketContext _context;
 
@@ -77,7 +76,8 @@ namespace IdentityServer4.Couchbase.Services
             }
             else
             {
-                _consents.Add(consent);
+                var key = Guid.NewGuid().ToString();
+                _bucket.InsertAsync(key, new CouchbaseWrapper<Consent>(key, consent));
             }
             return Task.FromResult(0);
         }
@@ -93,11 +93,11 @@ namespace IdentityServer4.Couchbase.Services
             var query =
                 from c in _context.Query<CouchbaseWrapper<Consent>>()
                 where c.Model.Subject == subject && c.Model.ClientId == client
-                select c.Model;
+                select c.Id;
             var item = query.SingleOrDefault();
             if (item != null)
             {
-                _consents.Remove(item);
+                _bucket.RemoveAsync(item);
             }
             return Task.FromResult(0);
         }
