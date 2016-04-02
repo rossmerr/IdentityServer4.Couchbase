@@ -1,9 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "IdentityServer4.Couchbase", "IdentityServer4.Couchbase\IdentityServer4.Couchbase.xproj", "{80748806-B34B-4626-852D-C1C800C6ABA1}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "IdentityServer4.Couchbase", "src\IdentityServer4.Couchbase\IdentityServer4.Couchbase.xproj", "{80748806-B34B-4626-852D-C1C800C6ABA1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AE276BCA-FFCC-4EC6-8114-7D779B468B08}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{5596000C-4511-4BD2-9BAD-02C311BA31AD}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc", "sample\Mvc\Mvc.xproj", "{F583C259-2CD7-4E38-8081-5C003E3EE084}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A75FF2E6-D67A-4649-9515-10993B924C08}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +26,16 @@ Global
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{80748806-B34B-4626-852D-C1C800C6ABA1} = {AE276BCA-FFCC-4EC6-8114-7D779B468B08}
+		{F583C259-2CD7-4E38-8081-5C003E3EE084} = {5596000C-4511-4BD2-9BAD-02C311BA31AD}
 	EndGlobalSection
 EndGlobal
