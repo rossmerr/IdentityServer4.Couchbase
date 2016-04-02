@@ -1,0 +1,19 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "Identity.Couchbase Class Library",
+  "authors": [ "ross" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "dependencies": {
+    "Microsoft.AspNet.Identity": "3.0.0-rc1-final"
+  },
+  "frameworks": {
+    "net451": {
+      "dependencies": {
+        "CouchbaseNetClient": "2.2.6",
+        "Linq2Couchbase": "1.0.2"
+      }
+    }
+  }
+}
