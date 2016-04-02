@@ -1,34 +1,41 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
-using Couchbase.Linq;
+using Identity.Couchbase;
 using IdentityServer4.Core.Validation;
+using Microsoft.AspNet.Identity;
 
 namespace IdentityServer4.Couchbase.Services
 {
-    public class CouchbaseResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
+    public class CouchbaseResourceOwnerPasswordValidator<TUser> : IResourceOwnerPasswordValidator
+        where TUser : class, IIdentityUser, new()
     {
-        readonly IBucketContext _context;
 
-        public CouchbaseResourceOwnerPasswordValidator(IBucketContext context)
+        readonly UserManager<TUser> _userManager;
+
+        public CouchbaseResourceOwnerPasswordValidator(UserManager<TUser> userManager)
         {
-            _context = context;
+            _userManager = userManager;
         }
 
-        public Task<CustomGrantValidationResult> ValidateAsync(string userName, string password, ValidatedTokenRequest request)
+        public async Task<CustomGrantValidationResult> ValidateAsync(string userName, string password, ValidatedTokenRequest request)
         {
-            var query =
-                from u in _context.Query<CouchbaseWrapper<CouchbaseUser>>()
-                where u.Model.Username == userName && u.Model.Password == password
-                select u.Model;
 
-            var user = query.SingleOrDefault();
-            if (user != null)
+            var user = await _userManager.FindByNameAsync(userName);
+
+            if (user == null)
             {
-                return Task.FromResult(new CustomGrantValidationResult(user.Subject, "password"));
+                return await Task.FromResult(new CustomGrantValidationResult("Invalid username or password"));
             }
 
-            return Task.FromResult(new CustomGrantValidationResult("Invalid username or password"));
+            var result = await _userManager.CheckPasswordAsync(user, password);
+
+            if (result)
+            {
+                return await Task.FromResult(new CustomGrantValidationResult(user.Id, "password"));
+            }
+
+            return await Task.FromResult(new CustomGrantValidationResult("Invalid username or password"));
+
         }
     }
 }

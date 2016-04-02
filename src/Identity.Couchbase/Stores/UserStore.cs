@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Couchbase.Core;
@@ -10,30 +11,20 @@ using Microsoft.AspNet.Identity;
 
 namespace Identity.Couchbase
 {
-
-    /// <summary>
-    /// Represents a new instance of a persistence store for the specified user and role types.
-    /// </summary>
-    /// <typeparam name="TUser">The type representing a user.</typeparam>
-    /// <typeparam name="TRole">The type representing a role.</typeparam>
-    /// <typeparam name="TKey">The type of the primary key for a role.</typeparam>
-    public class UserStore<TUser, TRole, TKey> :
+    public class UserStore<TUser, TRole> :
         IUserLoginStore<TUser>,
         IUserRoleStore<TUser>,
-        IUserPasswordStore<TUser>
-        where TUser : class, IIdentityUser<TKey>
+        IUserPasswordStore<TUser>,
+        IUserClaimStore<TUser>
+        where TUser : class, IIdentityUser
         where TRole : IIdentityRole
-        where TKey : IEquatable<TKey>
     {
 
         readonly IBucket _bucket;
         readonly IBucketContext _context;
 
-        /// <summary>
-        /// Creates a new instance of <see cref="UserStore"/>.
-        /// </summary>
-        /// <param name="bucket">The bucket used to access the store.</param>
-        /// <param name="context">The context used to access the store.</param>
+        bool _disposed;
+
         public UserStore(IBucket bucket, IBucketContext context)
         {
             if (context == null)
@@ -46,11 +37,7 @@ namespace Identity.Couchbase
             }
             _context = context;
             _bucket = bucket;
-
         }
-
-
-        bool _disposed;
         
         protected void ThrowIfDisposed()
         {
@@ -95,10 +82,7 @@ namespace Identity.Couchbase
 
             return _bucket.UpsertAsync(user.ConvertUserToId(), user);
         }
-
      
-
-
         public Task RemoveLoginAsync(TUser user, string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -148,7 +132,7 @@ namespace Identity.Couchbase
             var results = from user in _context.Query<TUser>()
                 from login in user.Logins
                 where login.LoginProvider == loginProvider
-                where login.ProviderKey == providerKey
+                && login.ProviderKey == providerKey
                 select user;
 
             return Task.FromResult(results.FirstOrDefault());
@@ -461,6 +445,120 @@ namespace Identity.Couchbase
                     select user;
 
                 return results.ToList();
+            }, cancellationToken);
+        }
+
+        public Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.Factory.StartNew<IList<Claim>>(() => user.Claims.ToList(), cancellationToken);
+        }
+
+        public Task AddClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (claims == null)
+            {
+                throw new ArgumentNullException(nameof(claims));
+            }
+
+            foreach (var claim in claims)
+            {
+                user.Claims.Add(claim);
+            }
+
+            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+        }
+
+        public Task ReplaceClaimAsync(TUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (claim == null)
+            {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
+            if (newClaim == null)
+            {
+                throw new ArgumentNullException(nameof(newClaim));
+            }
+
+            if (user.Claims.Contains(claim))
+            {
+                user.Claims.Remove(claim);
+            }
+
+            user.Claims.Add(newClaim);
+
+            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+        }
+
+        public Task RemoveClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (claims == null)
+            {
+                throw new ArgumentNullException(nameof(claims));
+            }
+
+            foreach (var claim in claims)
+            {
+                if (user.Claims.Contains(claim))
+                {
+                    user.Claims.Remove(claim);
+                }
+            }
+            
+            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+        }
+
+        public Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (claim == null)
+            {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
+            return Task.Factory.StartNew<IList<TUser>>(() =>
+            {
+                var query = from user in _context.Query<TUser>()
+                    from userclaims in user.Claims
+                    where userclaims.Value == claim.Value
+                          && userclaims.Type == claim.Type
+                    select user;
+
+                return query.ToList();
             }, cancellationToken);
         }
     }

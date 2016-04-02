@@ -1,6 +1,8 @@
 ﻿using System;
+using Identity.Couchbase;
 using IdentityServer4.Core.Services;
 using IdentityServer4.Core.Validation;
+using IdentityServer4.Couchbase;
 using IdentityServer4.Couchbase.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -24,10 +26,10 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
-        public static IIdentityServerBuilder AddCouchbaseUsers(this IIdentityServerBuilder builder)
+        public static IIdentityServerBuilder AddCouchbaseUsers<TUser>(this IIdentityServerBuilder builder) where TUser : class, IIdentityUser, new()
         {
-            builder.Services.AddTransient<IProfileService, CouchbaseProfileService>();
-            builder.Services.AddTransient<IResourceOwnerPasswordValidator, CouchbaseResourceOwnerPasswordValidator>();
+            builder.Services.AddTransient<IProfileService, AspNetIdentityProfileService<TUser>>();
+            builder.Services.AddTransient<IResourceOwnerPasswordValidator, CouchbaseResourceOwnerPasswordValidator<TUser>>();
 
             return builder;
         }

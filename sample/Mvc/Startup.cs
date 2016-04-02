@@ -51,16 +51,9 @@ namespace Mvc
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            services.AddApplicationInsightsTelemetry(Configuration);
 
-            services.AddEntityFramework()
-                .AddSqlServer()
-                .AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
-
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
+                .AddCouchBaseStores<ApplicationUser, ApplicationRole>()
                 .AddDefaultTokenProviders();
 
             var cert = new X509Certificate2(Path.Combine(_environment.ApplicationBasePath, "idsrv4test.pfx"), "idsrv3test");
@@ -71,7 +64,7 @@ namespace Mvc
             })
                 .AddCouchbaseClients()
                 .AddCouchbaseScopes()
-                .AddCouchbaseUsers();
+                .AddCouchbaseUsers<ApplicationUser>();
 
             services.AddMvc();
 
@@ -94,23 +87,11 @@ namespace Mvc
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-
-                // For more details on creating database during deployment see http://go.microsoft.com/fwlink/?LinkID=615859
-                try
-                {
-                    using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>()
-                        .CreateScope())
-                    {
-                        serviceScope.ServiceProvider.GetService<ApplicationDbContext>()
-                             .Database.Migrate();
-                    }
-                }
-                catch { }
             }
 
    
-
             app.UseStaticFiles();
+            app.UseIdentity();
 
             app.UseIdentityServer();
 

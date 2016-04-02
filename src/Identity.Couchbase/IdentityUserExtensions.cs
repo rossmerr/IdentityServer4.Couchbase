@@ -10,9 +10,14 @@ namespace Identity.Couchbase
             return $"IdentityUser:{email}";
         }
 
-        public static string ConvertUserToId<TKey>(this IIdentityUser<TKey> user) where TKey : IEquatable<TKey>
+        public static string ConvertUserToId(this IIdentityUser user) 
         {
             return ConvertEmailToId(user.Email);
+        }
+
+        public static string ConvertRoleToId(this IIdentityRole user) 
+        {
+            return $"IdentityRole:{user.RoleId}";
         }
     }
 }
