@@ -2,20 +2,20 @@
 
 namespace Identity.Couchbase
 {
-    public static class IdentityUserExtensions
+    public static class IdentityExtensions
     {
 
-        public static string ConvertEmailToId(string email)
+        static string ConvertEmailToId(string email)
         {
             return $"IdentityUser:{email}";
         }
 
-        public static string ConvertUserToId(this IIdentityUser user) 
+        public static string ConvertUserToId(this IUser user) 
         {
             return ConvertEmailToId(user.Email);
         }
 
-        public static string ConvertRoleToId(this IIdentityRole user) 
+        public static string ConvertRoleToId(this IRole user) 
         {
             return $"IdentityRole:{user.RoleId}";
         }

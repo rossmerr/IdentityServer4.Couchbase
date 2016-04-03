@@ -19,7 +19,7 @@ namespace IdentityServer4.Couchbase.Services
         public CouchbaseAuthorizationCodeStore(IBucket bucket, IBucketContext context)
         {
             _bucket = bucket;
-            _context = context;
+            _context = context;            
         }
         
         /// <summary>

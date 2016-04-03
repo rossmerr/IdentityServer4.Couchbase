@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.0-*",
   "description": "IdentityServer4.Couchbase Class Library",
   "authors": [ "ross" ],
@@ -9,7 +9,8 @@
     "IdentityServer4": "1.0.0-beta1-update1",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
     "Microsoft.AspNet.Identity": "3.0.0-rc1-final",
-    "Identity.Couchbase": "1.0.0-*"
+    "Identity.Couchbase": "1.0.0-*",
+    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final"
   },
   "frameworks": {
     "net451": {

@@ -5,7 +5,7 @@ using Identity.Couchbase;
 
 namespace Mvc.Models
 {
-    public class ApplicationRole : IIdentityRole
+    public class ApplicationRole : IRole
     {
         public string RoleId { get; set; }
         public string NormalizedName { get; set; }

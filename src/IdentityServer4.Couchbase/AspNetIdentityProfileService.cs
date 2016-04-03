@@ -10,7 +10,7 @@ using Microsoft.AspNet.Identity;
 namespace IdentityServer4.Couchbase
 {
     public class AspNetIdentityProfileService<TUser>  : IProfileService
-        where TUser : class, IIdentityUser, new()
+        where TUser : IUser, new()
     {
         public string DisplayNameClaimType { get; set; }
         public bool EnableSecurityStamp { get; set; }

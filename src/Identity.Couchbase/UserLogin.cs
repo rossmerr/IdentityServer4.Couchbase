@@ -1,6 +1,6 @@
 ﻿namespace Identity.Couchbase
 {
-    public class IdentityUserLogin
+    public class UserLogin
     {
         /// <summary>
         /// The login provider for the login (i.e. facebook, google)

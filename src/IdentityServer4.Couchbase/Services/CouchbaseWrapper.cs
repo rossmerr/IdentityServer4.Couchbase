@@ -1,6 +1,6 @@
 ﻿namespace IdentityServer4.Couchbase.Services
 {
-    class CouchbaseWrapper<TEntity>
+    public class CouchbaseWrapper<TEntity>
     {
         public CouchbaseWrapper(string id, TEntity model)
         {
@@ -10,5 +10,6 @@
 
         public string Id { get; set; }
         public TEntity Model { get; set; }
+        public string Discriminator => typeof(TEntity).Name.ToLower();
     }
 }

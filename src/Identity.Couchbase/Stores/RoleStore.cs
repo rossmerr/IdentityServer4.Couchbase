@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Couchbase.Core;
 using Microsoft.AspNet.Identity;
 
-namespace Identity.Couchbase
+namespace Identity.Couchbase.Stores
 {
-    public class RoleStore<TRole> : IRoleClaimStore<TRole> where TRole : class, IIdentityRole
+    public class RoleStore<TRole> : IRoleClaimStore<TRole> where TRole : IRole
     {
         readonly IBucket _bucket;
 
@@ -77,9 +77,14 @@ namespace Identity.Couchbase
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
 
-        public Task<TRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public async Task<TRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var result = await _bucket.GetAsync<TRole>(roleId);
+
+            return result.Value;
         }
 
         public async Task<TRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)

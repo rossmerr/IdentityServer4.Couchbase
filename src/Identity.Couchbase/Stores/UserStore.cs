@@ -9,15 +9,15 @@ using Couchbase.Core;
 using Couchbase.Linq;
 using Microsoft.AspNet.Identity;
 
-namespace Identity.Couchbase
+namespace Identity.Couchbase.Stores
 {
     public class UserStore<TUser, TRole> :
         IUserLoginStore<TUser>,
         IUserRoleStore<TUser>,
         IUserPasswordStore<TUser>,
         IUserClaimStore<TUser>
-        where TUser : class, IIdentityUser
-        where TRole : IIdentityRole
+        where TUser : IUser
+        where TRole : IRole
     {
 
         readonly IBucket _bucket;
@@ -72,7 +72,7 @@ namespace Identity.Couchbase
 
             if (matchedLogin == null)
             {
-                user.Logins.Add(new IdentityUserLogin
+                user.Logins.Add(new UserLogin
                 {
                     ProviderKey = login.ProviderKey,
                     LoginProvider = login.LoginProvider,
@@ -93,9 +93,14 @@ namespace Identity.Couchbase
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (loginProvider == null || providerKey == null)
+            if (loginProvider == null)
             {
-                throw new ArgumentNullException("Login");
+                throw new ArgumentNullException(nameof(loginProvider));
+            }
+
+            if (providerKey == null)
+            {
+                throw new ArgumentNullException(nameof(providerKey));
             }
 
             var matchedLogins = user.Logins.First(x => x.ProviderKey == providerKey && x.LoginProvider == loginProvider);

@@ -7,7 +7,7 @@ using Microsoft.AspNet.Identity;
 namespace IdentityServer4.Couchbase.Services
 {
     public class CouchbaseResourceOwnerPasswordValidator<TUser> : IResourceOwnerPasswordValidator
-        where TUser : class, IIdentityUser, new()
+        where TUser : IUser, new()
     {
 
         readonly UserManager<TUser> _userManager;
