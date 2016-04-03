@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
+using IdentityServer4.Couchbase.Wrappers;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer4.Couchbase.Services
@@ -34,7 +35,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task<bool> IsOriginAllowedAsync(string origin)
         {
             var query =
-                from client in _context.Query<CouchbaseWrapper<Client>>()
+                from client in _context.Query<ClientWrapper>()
                 from url in client.Model.AllowedCorsOrigins
                 select url.GetOrigin();
 

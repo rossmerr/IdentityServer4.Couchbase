@@ -1,4 +1,4 @@
-﻿namespace IdentityServer4.Couchbase.Services
+﻿namespace IdentityServer4.Couchbase.Wrappers
 {
     public class CouchbaseWrapper<TEntity>
     {

@@ -6,6 +6,7 @@ using Couchbase.Core;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
+using IdentityServer4.Couchbase.Wrappers;
 
 namespace IdentityServer4.Couchbase.Services
 {
@@ -32,7 +33,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task<IEnumerable<Consent>> LoadAllAsync(string subject)
         {
             var query =
-                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                from c in _context.Query<ConsentWrapper>()
                 where c.Model.Subject == subject
                 select c.Model;
             return Task.FromResult<IEnumerable<Consent>>(query.ToArray());
@@ -47,7 +48,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task<Consent> LoadAsync(string subject, string client)
         {
             var query =
-                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                from c in _context.Query<ConsentWrapper>()
                 where c.Model.Subject == subject && c.Model.ClientId == client
                 select c.Model;
             return Task.FromResult(query.SingleOrDefault());
@@ -65,7 +66,7 @@ namespace IdentityServer4.Couchbase.Services
             consent.Scopes = consent.Scopes.ToArray();
 
             var query =
-                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                from c in _context.Query<ConsentWrapper>()
                 where c.Model.Subject == consent.Subject && c.Model.ClientId == consent.ClientId
                 select c.Model;
 
@@ -77,7 +78,7 @@ namespace IdentityServer4.Couchbase.Services
             else
             {
                 var key = Guid.NewGuid().ToString();
-                _bucket.InsertAsync(key, new CouchbaseWrapper<Consent>(key, consent));
+                _bucket.InsertAsync(key, new ConsentWrapper(key, consent));
             }
             return Task.FromResult(0);
         }
@@ -91,7 +92,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task RevokeAsync(string subject, string client)
         {
             var query =
-                from c in _context.Query<CouchbaseWrapper<Consent>>()
+                from c in _context.Query<ConsentWrapper>()
                 where c.Model.Subject == subject && c.Model.ClientId == client
                 select c.Id;
             var item = query.SingleOrDefault();

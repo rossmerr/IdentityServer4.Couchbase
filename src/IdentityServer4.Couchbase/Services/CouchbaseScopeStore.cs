@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
+using IdentityServer4.Couchbase.Wrappers;
 
 namespace IdentityServer4.Couchbase.Services
 {
@@ -34,7 +35,7 @@ namespace IdentityServer4.Couchbase.Services
         {
             if (scopeNames == null) throw new ArgumentNullException("scopeNames");
             
-            var scopes = from s in _context.Query<CouchbaseWrapper<Scope>>()
+            var scopes = from s in _context.Query<ScopeWrapper>()
                          where scopeNames.ToList().Contains(s.Model.Name)
                          select s.Model;
 
@@ -52,14 +53,14 @@ namespace IdentityServer4.Couchbase.Services
         {
             if (publicOnly)
             {
-                var scopes = from s in _context.Query<CouchbaseWrapper<Scope>>()
+                var scopes = from s in _context.Query<ScopeWrapper>()
                              where s.Model.ShowInDiscoveryDocument
                              select s.Model;
 
                 return Task.FromResult<IEnumerable<Scope>>(scopes.ToList());
             }
 
-            return Task.FromResult<IEnumerable<Scope>>(_context.Query<CouchbaseWrapper<Scope>>().Select(p => p.Model).ToList());
+            return Task.FromResult<IEnumerable<Scope>>(_context.Query<ScopeWrapper>().Select(p => p.Model).ToList());
         }
     }
 }

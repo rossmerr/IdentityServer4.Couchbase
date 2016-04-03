@@ -1,12 +1,11 @@
-﻿using System;
-using Identity.Couchbase;
+﻿using Identity.Couchbase;
 using IdentityServer4.Core.Services;
 using IdentityServer4.Core.Validation;
-using IdentityServer4.Couchbase;
 using IdentityServer4.Couchbase.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace IdentityServer4.Couchbase.Configuration
 {
     public static class IdentityServerServiceCollectionExtensions
     {

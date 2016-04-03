@@ -1,13 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase;
 using Couchbase.Core;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
+using IdentityServer4.Couchbase.Wrappers;
 
 namespace IdentityServer4.Couchbase.Services
 {
+
     /// <summary>
     /// Couchbase authorization code store
     /// </summary>
@@ -30,7 +33,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task StoreAsync(string key, AuthorizationCode value)
         {
-            return _bucket.InsertAsync(key, new CouchbaseWrapper<AuthorizationCode>(key, value));
+            return _bucket.InsertAsync(key, new AuthorizationCodeWrapper(key, value));
         }
 
         /// <summary>
@@ -40,7 +43,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public async Task<AuthorizationCode> GetAsync(string key)
         {
-            var result = await _bucket.GetAsync<CouchbaseWrapper<AuthorizationCode>>(key);
+            var result = await _bucket.GetAsync<AuthorizationCodeWrapper>(key);
             return result.Success ? result.Value.Model : null;
         }
 
@@ -64,7 +67,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task<IEnumerable<ITokenMetadata>> GetAllAsync(string subject)
         {
             var query =
-                from item in _context.Query<CouchbaseWrapper<AuthorizationCode>>()
+                from item in _context.Query<AuthorizationCodeWrapper>()
                 where item.Model.SubjectId == subject
                 select item.Model;
             var list = query.ToArray();
@@ -80,7 +83,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task RevokeAsync(string subject, string client)
         {
             var query =
-                from item in _context.Query<CouchbaseWrapper<AuthorizationCode>>()
+                from item in _context.Query<AuthorizationCodeWrapper>()
                 where item.Model.Subject.GetSubjectId() == subject && item.Model.ClientId == client
                 select item.Id;
 

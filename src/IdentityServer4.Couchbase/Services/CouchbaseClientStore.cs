@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
+using IdentityServer4.Couchbase.Wrappers;
 
 namespace IdentityServer4.Couchbase.Services
 {
@@ -29,7 +30,7 @@ namespace IdentityServer4.Couchbase.Services
         public Task<Client> FindClientByIdAsync(string clientId)
         {
             var query =
-                from client in _context.Query<CouchbaseWrapper<Client>>()
+                from client in _context.Query<ClientWrapper>()
                 where client.Model.ClientId == clientId && client.Model.Enabled
                 select client.Model;
             

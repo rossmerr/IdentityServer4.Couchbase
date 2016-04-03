@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Couchbase.Linq.Filters;
 
 namespace Identity.Couchbase
 {
+    [DocumentTypeFilter("user")]
     public abstract class IUser
     {
-        internal const string Type = "user";
-
         public string Id { get; }
         public string Email { get; set; }
         public string UserName { get; set; }
@@ -17,6 +17,5 @@ namespace Identity.Couchbase
         public ICollection<IRole> Roles { get; set; }
         public ICollection<UserLogin> Logins { get; set; }
         public ICollection<Claim> Claims { get; set; }
-        public string Discriminator => Type;
     }
 }
