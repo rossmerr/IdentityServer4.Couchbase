@@ -36,9 +36,7 @@ namespace Identity.Couchbase.Stores
         public async Task<AuthenticationTicket> RetrieveAsync(string key)
         {
             var doc = await _bucket.GetAndTouchAsync<string>(key, _timeout);
-            if (!doc.Success) return null;
-            var ticket = Deserialize(doc.Value);
-            return ticket;
+            return !doc.Success ? null : Deserialize(doc.Value);
         }
 
         public async Task<string> StoreAsync(AuthenticationTicket ticket)
