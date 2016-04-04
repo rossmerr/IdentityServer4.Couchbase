@@ -4,7 +4,6 @@ using Couchbase.Core;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Identity;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 
 namespace Identity.Couchbase.Stores
@@ -13,64 +12,39 @@ namespace Identity.Couchbase.Stores
     {
         readonly IDataSerializer<AuthenticationTicket> _ticketSerializer;
         readonly IBucket _bucket;
-        readonly ILogger _logger;
-        readonly double _timeout;
+        readonly TimeSpan _timeout;
 
         public SessionStore(IBucket bucket,
             IDataSerializer<AuthenticationTicket> ticketSerializer,
-            IOptions<IdentityOptions> options, 
-            ILogger<SessionStore> logger)
+            IOptions<IdentityOptions> options)
         {
-            _logger = logger;
             _bucket = bucket;
-            _timeout = options.Value.Cookies.ApplicationCookie.ExpireTimeSpan.TotalMinutes;
+            _timeout = options.Value.Cookies.ApplicationCookie.ExpireTimeSpan;
             _ticketSerializer = ticketSerializer;
         }
 
         public async Task RemoveAsync(string key)
         {
-            var result = await _bucket.ExistsAsync(key);
-            if (!result) return;
-            _logger.LogInformation($"{nameof(RemoveAsync)}: {key}");
-            _bucket.Remove(key);
+            await _bucket.RemoveAsync(key);
         }
 
         public async Task RenewAsync(string key, AuthenticationTicket ticket)
         {
-            if (await _bucket.ExistsAsync(key))
-            {
-                var ttl = TimeSpan.FromMinutes(_timeout);
-                await _bucket.UpsertAsync(key, Serialize(ticket), ttl);
-                _logger.LogInformation($"{nameof(RenewAsync)} {key} { ticket.Principal.Identity.Name} {ttl}");
-            }
-            else
-            {
-                _logger.LogInformation($"{nameof(RenewAsync)} Failed: {key}");
-            }
+            await _bucket.UpsertAsync(key, Serialize(ticket), _timeout);
         }
 
         public async Task<AuthenticationTicket> RetrieveAsync(string key)
         {
-            if (await _bucket.ExistsAsync(key))
-            {
-                var ttl = TimeSpan.FromMinutes(_timeout);
-                var doc = await _bucket.GetAndTouchAsync<string>(key, ttl);
-                if (string.IsNullOrWhiteSpace(doc.Value)) return null;
-                var ticket = Deserialize(doc.Value);
-                _logger.LogInformation($"{nameof(RetrieveAsync)}: {key} { ticket.Principal.Identity.Name}");
-                return ticket;
-            }
-
-            _logger.LogInformation($"{nameof(RetrieveAsync)} Failes: {key}");
-            return null;
+            var doc = await _bucket.GetAndTouchAsync<string>(key, _timeout);
+            if (!doc.Success) return null;
+            var ticket = Deserialize(doc.Value);
+            return ticket;
         }
 
         public async Task<string> StoreAsync(AuthenticationTicket ticket)
         {
             var key = nameof(SessionStore) + ":" + Guid.NewGuid() + ticket.GetHashCode();
-            var ttl = TimeSpan.FromMinutes(_timeout);
-            _logger.LogInformation($"{nameof(StoreAsync)} {key} { ticket.Principal.Identity.Name} {ttl}");
-            await _bucket.InsertAsync(key, Serialize(ticket), ttl);
+            await _bucket.InsertAsync(key, Serialize(ticket), _timeout);
             return key;      
         }
 
