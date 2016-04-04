@@ -14,7 +14,7 @@ namespace Identity.Couchbase.Stores
         readonly IDataSerializer<AuthenticationTicket> _ticketSerializer;
         readonly IBucket _bucket;
         readonly ILogger _logger;
-        readonly int _timeout;
+        readonly double _timeout;
 
         public SessionStore(IBucket bucket,
             IDataSerializer<AuthenticationTicket> ticketSerializer,
@@ -23,7 +23,7 @@ namespace Identity.Couchbase.Stores
         {
             _logger = logger;
             _bucket = bucket;
-            _timeout = options.Value.Cookies.ApplicationCookie.ExpireTimeSpan.Minutes;
+            _timeout = options.Value.Cookies.ApplicationCookie.ExpireTimeSpan.TotalMinutes;
             _ticketSerializer = ticketSerializer;
         }
 
