@@ -1,80 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using IdentityServer4.Couchbase.Configuration;
+﻿using System.IdentityModel.Tokens;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.Data.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
-using Mvc.Models;
-using Mvc.Services;
+using System.IdentityModel.Tokens.Jwt;
+using Identity.Couchbase;
 
 namespace Mvc
 {
     public class Startup
     {
-        readonly IApplicationEnvironment _environment;
-
-        public Startup(IApplicationEnvironment environment)
-        {
-            _environment = environment;
-        }
-
         public Startup(IHostingEnvironment env)
         {
-            // Set up configuration sources.
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
-
-            if (env.IsDevelopment())
-            {
-                // For more details on using the user secret store see http://go.microsoft.com/fwlink/?LinkID=532709
-                builder.AddUserSecrets();
-
-                // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
-                builder.AddApplicationInsightsSettings(developerMode: true);
-            }
-
-            builder.AddEnvironmentVariables();
+                .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
 
         public IConfigurationRoot Configuration { get; set; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddIdentity<ApplicationUser, ApplicationRole>()
-                .AddCouchBaseStores<ApplicationUser, ApplicationRole>()
-                .AddDefaultTokenProviders();
-
-            var cert = new X509Certificate2(Path.Combine(_environment.ApplicationBasePath, "idsrv4test.pfx"), "idsrv3test");
-
-            services.AddIdentityServer(options =>
-            {
-                options.SigningCertificate = cert;
-            })
-                .AddCouchbaseClients()
-                .AddCouchbaseScopes()
-                .AddCouchbaseUsers<ApplicationUser>();
-
             services.AddMvc();
-
-            // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
@@ -83,20 +34,42 @@ namespace Mvc
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
 
-   
+            app.UseIISPlatformHandler();
             app.UseStaticFiles();
-            app.UseIdentity();
 
-            app.UseIdentityServer();
+            app.UseCookieAuthentication(options =>
+            {
+                options.AuthenticationScheme = "cookies";
+                options.AutomaticAuthenticate = true;
+            });
 
-            // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            app.UseOpenIdConnectAuthentication(options =>
+            {
+                options.AuthenticationScheme = "oidc";
+                options.SignInScheme = "cookies";
+                options.AutomaticChallenge = true;
+
+                options.Authority = "http://localhost:22530/";
+                options.RequireHttpsMetadata = false;
+
+                options.ClientId = "mvc_implicit";
+                options.ResponseType = "id_token token";
+
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
+                options.Scope.Add("roles");
+                options.Scope.Add("api1");
+
+                options.TokenValidationParameters.NameClaimType = "name";
+                options.TokenValidationParameters.RoleClaimType = "role";
+            });
 
             app.UseMvc(routes =>
             {
@@ -106,7 +79,6 @@ namespace Mvc
             });
         }
 
-        // Entry point for the application.
         public static void Main(string[] args) => WebApplication.Run<Startup>(args);
     }
 }

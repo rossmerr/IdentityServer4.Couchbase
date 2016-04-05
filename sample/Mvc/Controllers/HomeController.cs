@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace Mvc.Controllers
 {
@@ -13,18 +16,30 @@ namespace Mvc.Controllers
             return View();
         }
 
-        public IActionResult About()
+        [Authorize]
+        public IActionResult Secure()
         {
-            ViewData["Message"] = "Your application description page.";
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> CallApi()
+        {
+            var token = User.FindFirst("access_token").Value;
+
+            var client = new HttpClient();
+            client.SetBearerToken(token);
+
+            var response = await client.GetStringAsync("http://localhost:3860/identity");
+            ViewBag.Json = JArray.Parse(response).ToString();
 
             return View();
         }
 
-        public IActionResult Contact()
+        public async Task<IActionResult> Logout()
         {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
+            await HttpContext.Authentication.SignOutAsync("cookies");
+            return Redirect("~/");
         }
 
         public IActionResult Error()
