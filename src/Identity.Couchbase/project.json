@@ -1,9 +1,9 @@
 ﻿{
-  "version": "1.0.0-*",
+  "version": "1.0.0",
   "description": "Identity.Couchbase Class Library",
-  "authors": [ "ross" ],
-  "tags": [ "" ],
-  "projectUrl": "",
+  "authors": [ "Ross Merrigan" ],
+  "tags": [ "Couchbase", "Identity" ],
+  "projectUrl": "https://github.com/RossMerr/IdentityServer4.Couchbase",
   "licenseUrl": "",
   "dependencies": {
     "Microsoft.AspNet.Identity": "3.0.0-rc1-final"

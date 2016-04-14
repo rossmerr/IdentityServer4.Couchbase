@@ -49,3 +49,5 @@ Temporary Items
 *.xproj.user
 *.vs
 sample/Mvc/node_modules/*
+src/Identity.Couchbase/node_modules/*
+src/IdentityServer4.Couchbase/node_modules/*

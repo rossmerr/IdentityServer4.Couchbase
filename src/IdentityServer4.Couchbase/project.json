@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0-*",
+  "version": "1.0.0",
   "description": "IdentityServer4.Couchbase Class Library",
-  "authors": [ "ross" ],
-  "tags": [ "" ],
-  "projectUrl": "",
+  "authors": [ "Ross Merrigan" ],
+  "tags": [ "Couchbase", "IdentityServer4" ],
+  "projectUrl": "https://github.com/RossMerr/IdentityServer4.Couchbase",
   "licenseUrl": "",
   "dependencies": {
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
