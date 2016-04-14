@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Core;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
@@ -9,20 +10,28 @@ using IdentityServer4.Couchbase.Wrappers;
 
 namespace IdentityServer4.Couchbase.Services
 {
+    public interface ICouchbaseScopeStore : IScopeStore
+    {
+        Task StoreScopeAsync(Scope client);
+    }
+
+
     /// <summary>
     /// Couchbase scope store
     /// </summary>
-    public class CouchbaseScopeStore : IScopeStore
+    public class CouchbaseScopeStore : ICouchbaseScopeStore
     {
         readonly IBucketContext _context;
+        readonly IBucket _bucket;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CouchbaseScopeStore"/> class.
         /// </summary>
         /// <param name="scopes">The scopes.</param>
-        public CouchbaseScopeStore(IBucketContext context)
+        public CouchbaseScopeStore(IBucketContext context, IBucket bucket)
         {
             _context = context;
+            _bucket = bucket;
         }
 
         /// <summary>
@@ -35,11 +44,18 @@ namespace IdentityServer4.Couchbase.Services
         {
             if (scopeNames == null) throw new ArgumentNullException("scopeNames");
             
-            var scopes = from s in _context.Query<ScopeWrapper>()
-                         where scopeNames.ToList().Contains(s.Model.Name)
-                         select s.Model;
+            var list = new List<Scope>();
 
-            return Task.FromResult<IEnumerable<Scope>>(scopes.ToList());
+            foreach (var scopeName in scopeNames)
+            {
+                var scopes = from s in _context.Query<ScopeWrapper>()
+                             where s.Model.Name == scopeName
+                             select s.Model;
+
+                list.AddRange(scopes);
+            }
+
+            return Task.FromResult<IEnumerable<Scope>>(list);
         }
 
 
@@ -57,10 +73,22 @@ namespace IdentityServer4.Couchbase.Services
                              where s.Model.ShowInDiscoveryDocument
                              select s.Model;
 
-                return Task.FromResult<IEnumerable<Scope>>(scopes.ToList());
-            }
+                if (scopes.Any())
+                {
+                    return Task.FromResult<IEnumerable<Scope>>(scopes.ToList());
+                }
+                return Task.FromResult(Enumerable.Empty<Scope>());
 
-            return Task.FromResult<IEnumerable<Scope>>(_context.Query<ScopeWrapper>().Select(p => p.Model).ToList());
+            }
+            var results = from s in _context.Query<ScopeWrapper>()
+                select s.Model;
+
+            return Task.FromResult<IEnumerable<Scope>>(results.ToList());
+        }
+
+        public Task StoreScopeAsync(Scope client)
+        {
+            return _bucket.InsertAsync(client.Name, new ScopeWrapper(client.Name, client));
         }
     }
 }

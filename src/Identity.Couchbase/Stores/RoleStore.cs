@@ -9,19 +9,22 @@ using Microsoft.AspNet.Identity;
 
 namespace Identity.Couchbase.Stores
 {
-    public class RoleStore<TRole> : IRoleClaimStore<TRole> where TRole : IRole
+    public class RoleStore<TRole> : IRoleClaimStore<TRole> 
+        where TRole : class, IRole
     {
         readonly IBucket _bucket;
+        readonly ILookupNormalizer _lookupNormalizer;
 
         bool _disposed;
 
-        public RoleStore(IBucket bucket)
+        public RoleStore(IBucket bucket, ILookupNormalizer lookupNormalizer)
         {
             if (bucket == null)
             {
                 throw new ArgumentNullException(nameof(bucket));
             }
             _bucket = bucket;
+            _lookupNormalizer = lookupNormalizer;
         }
 
         public Task AddClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default(CancellationToken))
@@ -44,7 +47,7 @@ namespace Identity.Couchbase.Stores
                 role.Claims.Add(claim);
             }
 
-            return _bucket.UpsertAsync(role.ConvertRoleToId(), role);
+            return _bucket.UpsertAsync(role.ConvertRoleToId(_lookupNormalizer), new RoleWrapper<TRole>(role));
         }
 
         public async Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken)
@@ -57,7 +60,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(role));
             }
 
-            var result = await _bucket.InsertAsync(role.ConvertRoleToId(), role);
+            var result = await _bucket.InsertAsync(role.ConvertRoleToId(_lookupNormalizer), new RoleWrapper<TRole>(role));
 
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
@@ -72,7 +75,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(role));
             }
 
-            var result = await _bucket.RemoveAsync(role.ConvertRoleToId());
+            var result = await _bucket.RemoveAsync(role.ConvertRoleToId(_lookupNormalizer));
 
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
@@ -92,9 +95,9 @@ namespace Identity.Couchbase.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var result = await _bucket.GetAsync<TRole>(normalizedRoleName);
+            var result = await _bucket.GetAsync<RoleWrapper<TRole>>(normalizedRoleName);
 
-            return result.Value;
+            return result.Value.Role;
         }
 
         public Task<IList<Claim>> GetClaimsAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
@@ -105,7 +108,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(role));
             }
 
-            return Task.Factory.StartNew<IList<Claim>>(() => role.Claims.ToList(), cancellationToken);
+            return Task.FromResult<IList<Claim>>(role.Claims.ToList());
         }
 
         public Task<string> GetNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken)
@@ -167,7 +170,7 @@ namespace Identity.Couchbase.Stores
                 role.Claims.Remove(claim);
             }
 
-            return _bucket.UpsertAsync(role.ConvertRoleToId(), role);
+            return _bucket.UpsertAsync(role.ConvertRoleToId(_lookupNormalizer), new RoleWrapper<TRole>(role));
         }
 
 
@@ -212,7 +215,7 @@ namespace Identity.Couchbase.Stores
             }
             role.ConcurrencyStamp = Guid.NewGuid().ToString();
 
-            var result = await _bucket.UpsertAsync(role.ConvertRoleToId(), role);
+            var result = await _bucket.UpsertAsync(role.ConvertRoleToId(_lookupNormalizer), new RoleWrapper<TRole>(role));
 
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
 
@@ -228,7 +231,7 @@ namespace Identity.Couchbase.Stores
 
         public void Dispose()
         {
-            _disposed = true;
+          //  _disposed = true;
         }
     }
 }

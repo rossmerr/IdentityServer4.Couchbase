@@ -7,7 +7,7 @@ using Microsoft.AspNet.Identity;
 namespace IdentityServer4.Couchbase.Services
 {
     public class CouchbaseResourceOwnerPasswordValidator<TUser> : IResourceOwnerPasswordValidator
-        where TUser : IUser, new()
+        where TUser : class, IUser
     {
 
         readonly UserManager<TUser> _userManager;
@@ -31,7 +31,7 @@ namespace IdentityServer4.Couchbase.Services
 
             if (result)
             {
-                return await Task.FromResult(new CustomGrantValidationResult(user.Id, "password"));
+                return await Task.FromResult(new CustomGrantValidationResult(user.Username, "password"));
             }
 
             return await Task.FromResult(new CustomGrantValidationResult("Invalid username or password"));

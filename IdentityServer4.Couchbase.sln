@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "IdentityServer4.Couchbase", "src\IdentityServer4.Couchbase\IdentityServer4.Couchbase.xproj", "{80748806-B34B-4626-852D-C1C800C6ABA1}"
 EndProject
@@ -24,24 +24,33 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		RepackedRelease|Any CPU = RepackedRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80748806-B34B-4626-852D-C1C800C6ABA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80748806-B34B-4626-852D-C1C800C6ABA1}.RepackedRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{80748806-B34B-4626-852D-C1C800C6ABA1}.RepackedRelease|Any CPU.Build.0 = Release|Any CPU
 		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F583C259-2CD7-4E38-8081-5C003E3EE084}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F583C259-2CD7-4E38-8081-5C003E3EE084}.RepackedRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{F583C259-2CD7-4E38-8081-5C003E3EE084}.RepackedRelease|Any CPU.Build.0 = Release|Any CPU
 		{0D9801D9-CEF0-4942-B264-109A0B87E775}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0D9801D9-CEF0-4942-B264-109A0B87E775}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D9801D9-CEF0-4942-B264-109A0B87E775}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D9801D9-CEF0-4942-B264-109A0B87E775}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D9801D9-CEF0-4942-B264-109A0B87E775}.RepackedRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{0D9801D9-CEF0-4942-B264-109A0B87E775}.RepackedRelease|Any CPU.Build.0 = Release|Any CPU
 		{3EF311AC-BA9D-4D27-85BF-D8D9C9E09416}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3EF311AC-BA9D-4D27-85BF-D8D9C9E09416}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EF311AC-BA9D-4D27-85BF-D8D9C9E09416}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EF311AC-BA9D-4D27-85BF-D8D9C9E09416}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EF311AC-BA9D-4D27-85BF-D8D9C9E09416}.RepackedRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{3EF311AC-BA9D-4D27-85BF-D8D9C9E09416}.RepackedRelease|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

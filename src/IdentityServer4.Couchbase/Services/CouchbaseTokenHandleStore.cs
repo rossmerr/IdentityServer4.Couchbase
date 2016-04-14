@@ -32,7 +32,11 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task StoreAsync(string key, Token value)
         {
-            return _bucket.InsertAsync(key, new TokenWrapper(key, value));
+            return _bucket.InsertAsync(key, new TokenWrapper()
+            {
+                Id = key,
+                Model = new Token()
+            });
         }
 
         /// <summary>

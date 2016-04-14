@@ -11,21 +11,30 @@ using Microsoft.AspNet.Identity;
 
 namespace Identity.Couchbase.Stores
 {
+    public interface ISubject<TUser> where TUser : class, IUser
+    {
+        Task<string> GetSubjectAsync(TUser user);
+    }
+
     public class UserStore<TUser, TRole> :
         IUserLoginStore<TUser>,
         IUserRoleStore<TUser>,
         IUserPasswordStore<TUser>,
-        IUserClaimStore<TUser>
-        where TUser : IUser
-        where TRole : IRole
+        IUserSecurityStampStore<TUser>,
+        IUserClaimStore<TUser>,
+        IUserLockoutStore<TUser>,
+        ISubject<TUser>
+        where TUser : class, IUser
+        where TRole : class, IRole
     {
 
         readonly IBucket _bucket;
         readonly IBucketContext _context;
+        readonly ILookupNormalizer _lookupNormalizer;
 
         bool _disposed;
 
-        public UserStore(IBucket bucket, IBucketContext context)
+        public UserStore(IBucket bucket, IBucketContext context, ILookupNormalizer lookupNormalizer)
         {
             if (context == null)
             {
@@ -36,6 +45,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(bucket));
             }
             _context = context;
+            _lookupNormalizer = lookupNormalizer;
             _bucket = bucket;
         }
         
@@ -49,7 +59,7 @@ namespace Identity.Couchbase.Stores
 
         public void Dispose()
         {
-            _disposed = true;
+           // _disposed = true;
         }
 
 
@@ -80,7 +90,7 @@ namespace Identity.Couchbase.Stores
                 });
             }           
 
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
      
         public Task RemoveLoginAsync(TUser user, string loginProvider, string providerKey, CancellationToken cancellationToken)
@@ -110,7 +120,7 @@ namespace Identity.Couchbase.Stores
                 user.Logins.Remove(matchedLogins);
             }
 
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public  Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user, CancellationToken cancellationToken)
@@ -123,10 +133,9 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return Task.Factory.StartNew<IList<UserLoginInfo>>(() =>
-            {
-                return user.Logins.Select(login => new UserLoginInfo(login.ProviderKey, login.LoginProvider, login.ProviderDisplayName)).ToList();
-            }, cancellationToken);
+            var logins = user.Logins.Select(login => new UserLoginInfo(login.ProviderKey, login.LoginProvider, login.ProviderDisplayName));
+
+            return Task.FromResult<IList<UserLoginInfo>>(logins.ToList());
         }
 
         public Task<TUser> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
@@ -134,11 +143,11 @@ namespace Identity.Couchbase.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var results = from user in _context.Query<TUser>()
-                from login in user.Logins
+            var results = from user in _context.Query<UserWrapper<TUser>>()
+                from login in user.User.Logins
                 where login.LoginProvider == loginProvider
                 && login.ProviderKey == providerKey
-                select user;
+                select user.User;
 
             return Task.FromResult(results.FirstOrDefault());
         }
@@ -153,7 +162,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return Task.FromResult(user.ConvertUserToId());
+            return Task.FromResult(user.ConvertUserToId(_lookupNormalizer));
         }
 
         public Task<string> GetUserNameAsync(TUser user, CancellationToken cancellationToken)
@@ -166,7 +175,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return Task.FromResult(user.UserName);
+            return Task.FromResult(user.Username);
         }
 
         public Task SetUserNameAsync(TUser user, string userName, CancellationToken cancellationToken)
@@ -179,9 +188,8 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            user.UserName = userName;
-            _bucket.UpsertAsync(user.ConvertUserToId(), user);
-            return Task.FromResult(0);
+            user.Username = userName;
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task<string> GetNormalizedUserNameAsync(TUser user, CancellationToken cancellationToken)
@@ -207,8 +215,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
             user.NormalizedUserName = normalizedName;
-            _bucket.UpsertAsync(user.ConvertUserToId(), user);
-            return Task.FromResult(0);
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
@@ -221,7 +228,12 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var result = await _bucket.InsertAsync(user.ConvertUserToId(), user);
+            var userWrapper = new UserWrapper<TUser>(user)
+            {
+                Subject = Guid.NewGuid().ToString()
+            };
+
+            var result = await _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), userWrapper);
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
 
@@ -237,7 +249,7 @@ namespace Identity.Couchbase.Stores
             
             user.ConcurrencyStamp = Guid.NewGuid().ToString();
 
-            var result = await _bucket.UpsertAsync(user.ConvertUserToId(), user);
+            var result = await _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
 
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();         
         }
@@ -252,7 +264,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var result = await _bucket.RemoveAsync(user.ConvertUserToId());
+            var result = await _bucket.RemoveAsync(user.ConvertUserToId(_lookupNormalizer));
 
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
@@ -262,23 +274,22 @@ namespace Identity.Couchbase.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var result = await _bucket.GetAsync<TUser>(userId);
-            return result.Value;
+            var result = await _bucket.GetAsync<UserWrapper<TUser>>(IdentityExtensions.ConvertEmailToId(userId, _lookupNormalizer));
+            return result.Value.User;
         }
 
         public Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
+            
+            var results = from user in _context.Query<UserWrapper<TUser>>()
+                where user.User.NormalizedUserName == normalizedUserName
+                select user.User;
 
-            return Task.Factory.StartNew(() =>
-            {
-                var results = from user in _context.Query<TUser>()
-                    where user.NormalizedUserName == normalizedUserName
-                    select user;
+            var u = results.FirstOrDefault();
 
-                return results.FirstOrDefault();
-            }, cancellationToken);
+            return Task.FromResult(u);
         }
 
         public Task SetPasswordHashAsync(TUser user, string passwordHash, CancellationToken cancellationToken)
@@ -292,8 +303,7 @@ namespace Identity.Couchbase.Stores
             }
 
             user.PasswordHash = passwordHash;
-            _bucket.UpsertAsync(user.ConvertUserToId(), user);
-            return Task.FromResult(0);
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken)
@@ -329,9 +339,9 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentException(Resource.ValueCannotBeNullOrEmpty, nameof(normalizedRoleName));
             }
 
-            var roleEntity = (from role in _context.Query<TRole>()
-                          where role.NormalizedName == normalizedRoleName
-                          select role).FirstOrDefault();
+            var roleEntity = (from role in _context.Query<RoleWrapper<TRole>>()
+                          where role.Role.NormalizedName == normalizedRoleName
+                          select role.Role).FirstOrDefault();
 
             if (roleEntity == null)
             {
@@ -341,7 +351,8 @@ namespace Identity.Couchbase.Stores
             var ur = Activator.CreateInstance<TRole>();
             ur.RoleId = roleEntity.RoleId;
             user.Roles.Add(ur);
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task RemoveFromRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken)
@@ -359,9 +370,9 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentException(Resource.ValueCannotBeNullOrEmpty, nameof(normalizedRoleName));
             }
 
-            var roleEntity = (from role in _context.Query<TRole>()
-                              where role.NormalizedName == normalizedRoleName
-                              select role).FirstOrDefault();
+            var roleEntity = (from role in _context.Query<RoleWrapper<TRole>>()
+                              where role.Role.NormalizedName == normalizedRoleName
+                              select role.Role).FirstOrDefault();
 
             if (roleEntity == null)
             {
@@ -376,8 +387,8 @@ namespace Identity.Couchbase.Stores
             }
 
             user.Roles.Remove(userRole);
-            
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken)
@@ -389,16 +400,21 @@ namespace Identity.Couchbase.Stores
             {
                 throw new ArgumentNullException(nameof(user));
             }
+            var list = new List<string>();
 
-            return Task.Factory.StartNew<IList<string>>(() =>
-            {
-                var results = from role in _context.Query<TRole>()
-                    from userRole in user.Roles
-                    where userRole.RoleId == role.RoleId
-                    select role.Name;
+            if (user.Roles == null)
+                return Task.FromResult<IList<string>>(list);
 
-                return results.ToList();
-            }, cancellationToken);
+            foreach (var role in user.Roles)
+            {                
+                var results = from r in _context.Query<RoleWrapper<TRole>>()
+                              where r.Role.RoleId == role.RoleId
+                              select r.Role.Name;
+
+                list.AddRange(results);
+            }
+            
+            return Task.FromResult<IList<string>>(list);
         }
 
         public async Task<bool> IsInRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
@@ -431,26 +447,22 @@ namespace Identity.Couchbase.Stores
             {
                 throw new ArgumentNullException(nameof(normalizedRoleName));
             }
+            
+            var role = (from roles in _context.Query<RoleWrapper<TRole>>()
+                where roles.Role.NormalizedName == normalizedRoleName
+                select roles.Role).FirstOrDefault();
 
-            return Task.Factory.StartNew<IList<TUser>>(() =>
+            if (role == null)
             {
+                return Task.FromResult<IList<TUser>>(new List<TUser>());
+            }
 
-                var role = (from roles in _context.Query<TRole>()
-                    where roles.NormalizedName == normalizedRoleName
-                    select roles).FirstOrDefault();
+            var results = from user in _context.Query<UserWrapper<TUser>>()
+                from ur in user.User.Roles
+                where ur.RoleId == role.RoleId
+                select user.User;
 
-                if (role == null)
-                {
-                    return new List<TUser>();
-                }
-
-                var results = from user in _context.Query<TUser>()
-                    from ur in user.Roles
-                    where ur.RoleId == role.RoleId
-                    select user;
-
-                return results.ToList();
-            }, cancellationToken);
+            return Task.FromResult<IList<TUser>>(results.ToList());
         }
 
         public Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken)
@@ -463,7 +475,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return Task.Factory.StartNew<IList<Claim>>(() => user.Claims.ToList(), cancellationToken);
+            return Task.FromResult<IList<Claim>>(user.Claims?.ToList() ?? new List<Claim>());
         }
 
         public Task AddClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
@@ -486,7 +498,7 @@ namespace Identity.Couchbase.Stores
                 user.Claims.Add(claim);
             }
 
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task ReplaceClaimAsync(TUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
@@ -516,7 +528,7 @@ namespace Identity.Couchbase.Stores
 
             user.Claims.Add(newClaim);
 
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task RemoveClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
@@ -541,8 +553,8 @@ namespace Identity.Couchbase.Stores
                     user.Claims.Remove(claim);
                 }
             }
-            
-            return _bucket.UpsertAsync(user.ConvertUserToId(), user);
+
+            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
@@ -555,16 +567,149 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(claim));
             }
 
-            return Task.Factory.StartNew<IList<TUser>>(() =>
-            {
-                var query = from user in _context.Query<TUser>()
-                    from userclaims in user.Claims
-                    where userclaims.Value == claim.Value
-                          && userclaims.Type == claim.Type
-                    select user;
+            var query = from user in _context.Query<UserWrapper<TUser>>()
+                from userclaims in user.User.Claims
+                where userclaims.Value == claim.Value
+                      && userclaims.Type == claim.Type
+                select user.User;
 
-                return query.ToList();
-            }, cancellationToken);
+            return Task.FromResult<IList<TUser>>(query.ToList());
+        }
+
+        public Task SetSecurityStampAsync(TUser user, string stamp, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.SecurityStamp = stamp;
+            return Task.FromResult(0);
+        }
+
+        public Task<string> GetSecurityStampAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult(user.SecurityStamp);
+        }
+
+        public Task<DateTimeOffset?> GetLockoutEndDateAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult(user.LockoutEnd);
+        }
+
+        public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.LockoutEnd = lockoutEnd;
+            return Task.FromResult(0);
+        }
+
+        public Task<int> IncrementAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.AccessFailedCount++;
+            return Task.FromResult(user.AccessFailedCount);
+        }
+
+        public Task ResetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.AccessFailedCount = 0;
+            return Task.FromResult(0);
+        }
+
+        public Task<int> GetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult(user.AccessFailedCount);
+        }
+
+        public Task<bool> GetLockoutEnabledAsync(TUser user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult(user.LockoutEnabled);
+        }
+
+        public Task SetLockoutEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.LockoutEnabled = enabled;
+            return Task.FromResult(0);
+        }
+
+        public async Task<string> GetSubjectAsync(TUser user)
+        {
+            ThrowIfDisposed();
+            
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            var result = await _bucket.GetAsync<UserWrapper<TUser>>(IdentityExtensions.ConvertEmailToId(user.Email, _lookupNormalizer));
+
+            return await Task.FromResult(result.Value.Subject);
         }
     }
 }

@@ -20,24 +20,26 @@ namespace IdentityServer4.Couchbase
 
         public static IIdentityServerBuilder AddCouchbaseScopes(this IIdentityServerBuilder builder)
         {
-            builder.Services.AddTransient<IScopeStore, CouchbaseScopeStore>();
-
+            builder.Services.AddSingleton<IScopeStore, CouchbaseScopeStore>();
             return builder;
         }
 
-        public static IIdentityServerBuilder AddCouchbaseUsers<TUser>(this IIdentityServerBuilder builder) where TUser : IUser, new()
+        public static IIdentityServerBuilder AddCouchbaseUsers<TUser>(this IIdentityServerBuilder builder) where TUser : class, IUser
         {
-            builder.Services.AddTransient<IProfileService, AspNetIdentityProfileService<TUser>>();
+            builder.Services.AddSingleton<IProfileService, AspNetIdentityProfileService<TUser>>();
             builder.Services.AddTransient<IResourceOwnerPasswordValidator, CouchbaseResourceOwnerPasswordValidator<TUser>>();
-
             return builder;
         }
 
         public static IIdentityServerBuilder AddCouchbaseClients(this IIdentityServerBuilder builder)
         {
-            builder.Services.AddTransient<IClientStore, CouchbaseClientStore>();
-            builder.Services.AddTransient<ICorsPolicyService, CouchbaseCorsPolicyService>();
+            builder.Services.AddSingleton<ICouchbaseClientStore, CouchbaseClientStore>();
+            builder.Services.AddSingleton<IClientStore>(p => p.GetService<ICouchbaseClientStore>());
 
+            builder.Services.AddSingleton<ICouchbaseScopeStore, CouchbaseScopeStore>();
+            builder.Services.AddSingleton<IScopeStore>(p => p.GetService<ICouchbaseScopeStore>());
+
+            builder.Services.AddSingleton<ICorsPolicyService, CouchbaseCorsPolicyService>();
             return builder;
         }     
     }

@@ -6,18 +6,21 @@
   "projectUrl": "",
   "licenseUrl": "",
   "dependencies": {
-    "IdentityServer4": "1.0.0-beta1-update1",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
     "Microsoft.AspNet.Identity": "3.0.0-rc1-final",
     "Identity.Couchbase": "1.0.0-*",
-    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final"
+    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final",
+    "IdentityServer4": "1.0.0-beta1-update1"
   },
   "frameworks": {
     "net451": {
       "dependencies": {
-        "CouchbaseNetClient": "2.2.6",
-        "Linq2Couchbase": "1.0.2",
+        "CouchbaseNetClient": "2.2.7",
+        "Linq2Couchbase": "1.1.0.2",
         "Remotion.Linq": "1.15.15"
+      },
+      "frameworkAssemblies": {
+        "System.ComponentModel.DataAnnotations": "4.0.0.0"
       }
     }
   }

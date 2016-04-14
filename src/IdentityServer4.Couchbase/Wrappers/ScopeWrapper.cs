@@ -3,11 +3,24 @@ using IdentityServer4.Core.Models;
 
 namespace IdentityServer4.Couchbase.Wrappers
 {
-    [DocumentTypeFilter("scope")]
-    public class ScopeWrapper : CouchbaseWrapper<Scope>
+    [DocumentTypeFilter(nameof(Scope))]
+    public class ScopeWrapper
     {
-        public ScopeWrapper(string id, Scope model) : base(id, model)
+        public ScopeWrapper(string id, Scope model) : this()
         {
+            Id = id;
+            Model = model;
         }
+
+        public ScopeWrapper()
+        {
+            Type = nameof(Scope);
+        }
+
+        public string Id { get; set; }
+
+        public Scope Model { get; set; }
+
+        public string Type { get; set; }
     }
 }

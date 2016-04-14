@@ -11,8 +11,8 @@
   "frameworks": {
     "net451": {
       "dependencies": {
-        "CouchbaseNetClient": "2.2.6",
-        "Linq2Couchbase": "1.0.2"
+        "CouchbaseNetClient": "2.2.7",
+        "Linq2Couchbase": "1.1.0.2"
       }
     }
   }

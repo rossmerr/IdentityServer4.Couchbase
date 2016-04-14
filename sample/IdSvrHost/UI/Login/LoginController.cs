@@ -6,20 +6,26 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Identity.Couchbase.Stores;
+using Microsoft.AspNet.Identity;
 
 namespace IdSvrHost.UI.Login
 {
     public class LoginController : Controller
     {
-        private readonly LoginService _loginService;
-        private readonly SignInInteraction _signInInteraction;
+        readonly SignInManager<CouchbaseUser> _loginService;
+        readonly UserManager<CouchbaseUser> _userManager;
+        readonly SignInInteraction _signInInteraction;
+        readonly ISubject<CouchbaseUser> _subject;
 
-        public LoginController(
-            LoginService loginService, 
-            SignInInteraction signInInteraction)
+        public LoginController(SignInManager<CouchbaseUser> loginService, 
+            SignInInteraction signInInteraction, 
+            UserManager<CouchbaseUser> userManager, ISubject<CouchbaseUser> subject)
         {
             _loginService = loginService;
             _signInInteraction = signInInteraction;
+            _userManager = userManager;
+            _subject = subject;
         }
 
         [HttpGet(Constants.RoutePaths.Login, Name = "Login")]
@@ -34,6 +40,7 @@ namespace IdSvrHost.UI.Login
                 {
                     vm.Username = request.LoginHint;
                     vm.SignInId = id;
+  
                 }
             }
 
@@ -46,14 +53,20 @@ namespace IdSvrHost.UI.Login
         {
             if (ModelState.IsValid)
             {
-                if (_loginService.ValidateCredentials(model.Username, model.Password))
+                var result = await _loginService.PasswordSignInAsync(model.Username, model.Password, false, false);
+                if (result.Succeeded)
                 {
-                    var user = _loginService.FindByUsername(model.Username);
+                    var user = await _userManager.FindByNameAsync(model.Username);
+                    
+                    var name =
+                        user.Claims.Where(x => x.Type == JwtClaimTypes.Name).Select(x => x.Value).FirstOrDefault() ??
+                        user.Username;
 
-                    var name = user.Claims.Where(x => x.Type == JwtClaimTypes.Name).Select(x => x.Value).FirstOrDefault() ?? user.Username;
+                    var subject = await _subject.GetSubjectAsync(user);
 
-                    var claims = new Claim[] {
-                        new Claim(JwtClaimTypes.Subject, user.Subject),
+                    var claims = new[]
+                    {
+                        new Claim(JwtClaimTypes.Subject, subject),
                         new Claim(JwtClaimTypes.Name, name),
                         new Claim(JwtClaimTypes.IdentityProvider, "idsvr"),
                         new Claim(JwtClaimTypes.AuthenticationTime, DateTime.UtcNow.ToEpochTime().ToString()),

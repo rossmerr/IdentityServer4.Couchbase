@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Couchbase.Linq;
-using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
 using IdentityServer4.Couchbase.Wrappers;
 using Microsoft.Extensions.Logging;

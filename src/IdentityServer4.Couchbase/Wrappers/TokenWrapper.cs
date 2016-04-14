@@ -1,13 +1,22 @@
 ﻿using Couchbase.Linq.Filters;
 using IdentityServer4.Core.Models;
+using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace IdentityServer4.Couchbase.Wrappers
 {
-    [DocumentTypeFilter("token")]
-    public class TokenWrapper : CouchbaseWrapper<Token>
+    [DocumentTypeFilter(nameof(Token))]
+    public class TokenWrapper 
     {
-        public TokenWrapper(string id, Token model) : base(id, model)
+        public TokenWrapper()
         {
+            Type = nameof(Token);
         }
+
+        public string Id { get; set; }
+
+        public Token Model { get; set; }
+
+        public string Type { get; set; }
     }
 }

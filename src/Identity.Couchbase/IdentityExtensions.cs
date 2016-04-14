@@ -1,23 +1,28 @@
 ﻿using System;
+using Microsoft.AspNet.Identity;
 
 namespace Identity.Couchbase
 {
     public static class IdentityExtensions
     {
-
-        static string ConvertEmailToId(string email)
+        public static string ConvertSessionKeyToId(this string sessionKey, ILookupNormalizer lookupNormalizer)
         {
-            return $"IdentityUser:{email}";
+            return lookupNormalizer.Normalize($"IdentitySession:{sessionKey}");
         }
 
-        public static string ConvertUserToId(this IUser user) 
+        public static string ConvertEmailToId(string email, ILookupNormalizer lookupNormalizer)
         {
-            return ConvertEmailToId(user.Email);
+            return lookupNormalizer.Normalize($"IdentityUser:{email}");
         }
 
-        public static string ConvertRoleToId(this IRole user) 
+        public static string ConvertUserToId(this IUser user, ILookupNormalizer lookupNormalizer) 
         {
-            return $"IdentityRole:{user.RoleId}";
+            return ConvertEmailToId(user.Email, lookupNormalizer);
+        }
+
+        public static string ConvertRoleToId(this IRole user, ILookupNormalizer lookupNormalizer)
+        {
+            return lookupNormalizer.Normalize($"IdentityRole:{user.RoleId}".ToLower());
         }
     }
 }

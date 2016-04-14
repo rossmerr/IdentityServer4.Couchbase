@@ -1,11 +1,9 @@
-﻿using System.IdentityModel.Tokens;
-using Microsoft.AspNet.Builder;
+﻿using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
-using Identity.Couchbase;
 
 namespace Mvc
 {
@@ -56,7 +54,7 @@ namespace Mvc
                 options.SignInScheme = "cookies";
                 options.AutomaticChallenge = true;
 
-                options.Authority = "http://localhost:22530/";
+                options.Authority = "http://localhost:54605/";
                 options.RequireHttpsMetadata = false;
 
                 options.ClientId = "mvc_implicit";

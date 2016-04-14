@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Couchbase.Core;
 using Couchbase.Linq;
 using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Services;
@@ -7,16 +8,23 @@ using IdentityServer4.Couchbase.Wrappers;
 
 namespace IdentityServer4.Couchbase.Services
 {
+    public interface ICouchbaseClientStore : IClientStore
+    {
+        Task StoreClientAsync(Client client);
+    }
+
     /// <summary>
     /// Couchbase client store
     /// </summary>
-    public class CouchbaseClientStore : IClientStore
+    public class CouchbaseClientStore : ICouchbaseClientStore
     {
         readonly IBucketContext _context;
-        
-        public CouchbaseClientStore(IBucketContext context)
+        readonly IBucket _bucket;
+
+        public CouchbaseClientStore(IBucketContext context, IBucket bucket)
         {
             _context = context;
+            _bucket = bucket;
         }
 
 
@@ -31,10 +39,16 @@ namespace IdentityServer4.Couchbase.Services
         {
             var query =
                 from client in _context.Query<ClientWrapper>()
-                where client.Model.ClientId == clientId && client.Model.Enabled
+                where client.Id == clientId && client.Model.Enabled
                 select client.Model;
-            
-            return Task.FromResult(query.SingleOrDefault());
+
+            var first = query.SingleOrDefault();
+            return Task.FromResult(first);
+        }
+
+        public Task StoreClientAsync(Client client)
+        {            
+            return _bucket.InsertAsync(client.ClientId, new ClientWrapper(client.ClientId, client));
         }
     }
 }

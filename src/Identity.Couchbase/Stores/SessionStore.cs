@@ -13,36 +13,39 @@ namespace Identity.Couchbase.Stores
         readonly IDataSerializer<AuthenticationTicket> _ticketSerializer;
         readonly IBucket _bucket;
         readonly TimeSpan _timeout;
+        readonly ILookupNormalizer _lookupNormalizer;
 
         public SessionStore(IBucket bucket,
             IDataSerializer<AuthenticationTicket> ticketSerializer,
+            ILookupNormalizer lookupNormalizer,
             IOptions<IdentityOptions> options)
         {
             _bucket = bucket;
             _timeout = options.Value.Cookies.ApplicationCookie.ExpireTimeSpan;
             _ticketSerializer = ticketSerializer;
+            _lookupNormalizer = lookupNormalizer;
         }
 
         public async Task RemoveAsync(string key)
         {
-            await _bucket.RemoveAsync(key);
+            await _bucket.RemoveAsync(key.ConvertSessionKeyToId(_lookupNormalizer));
         }
 
         public async Task RenewAsync(string key, AuthenticationTicket ticket)
-        {
-            await _bucket.UpsertAsync(key, Serialize(ticket), _timeout);
+        {            
+            await _bucket.UpsertAsync(key.ConvertSessionKeyToId(_lookupNormalizer), new Session(Serialize(ticket)), _timeout);
         }
 
         public async Task<AuthenticationTicket> RetrieveAsync(string key)
         {
-            var doc = await _bucket.GetAndTouchAsync<string>(key, _timeout);
-            return !doc.Success ? null : Deserialize(doc.Value);
+            var doc = await _bucket.GetAndTouchAsync<Session>(key, _timeout);
+            return !doc.Success ? null : Deserialize(doc.Value.Data);
         }
 
         public async Task<string> StoreAsync(AuthenticationTicket ticket)
         {
-            var key = nameof(SessionStore) + ":" + Guid.NewGuid() + ticket.GetHashCode();
-            await _bucket.InsertAsync(key, Serialize(ticket), _timeout);
+            var key = Guid.NewGuid().ToString() + ticket.GetHashCode();
+            await _bucket.InsertAsync(key.ConvertSessionKeyToId(_lookupNormalizer), new Session(Serialize(ticket)), _timeout);
             return key;      
         }
 

@@ -48,3 +48,4 @@ Temporary Items
 *.lock.json
 *.xproj.user
 *.vs
+sample/Mvc/node_modules/*
