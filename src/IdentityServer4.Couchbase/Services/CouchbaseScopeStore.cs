@@ -88,7 +88,7 @@ namespace IdentityServer4.Couchbase.Services
 
         public Task StoreScopeAsync(Scope client)
         {
-            return _bucket.InsertAsync(client.Name, new ScopeWrapper(client.Name, client));
+            return _bucket.InsertAsync(ScopeWrapper.ScopeWrapperId(client.Name), new ScopeWrapper(client.Name, client));
         }
     }
 }

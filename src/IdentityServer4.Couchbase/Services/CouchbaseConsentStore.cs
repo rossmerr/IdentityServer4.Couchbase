@@ -78,7 +78,7 @@ namespace IdentityServer4.Couchbase.Services
             else
             {
                 var key = Guid.NewGuid().ToString();
-                _bucket.InsertAsync(key, new ConsentWrapper(key, consent));
+                _bucket.InsertAsync(ConsentWrapper.ConsentWrapperId(key), new ConsentWrapper(key, consent));
             }
             return Task.FromResult(0);
         }

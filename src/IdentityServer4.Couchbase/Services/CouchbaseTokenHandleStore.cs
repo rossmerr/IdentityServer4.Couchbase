@@ -32,7 +32,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task StoreAsync(string key, Token value)
         {
-            return _bucket.InsertAsync(key, new TokenWrapper()
+            return _bucket.InsertAsync(TokenWrapper.TokenWrapperId(key), new TokenWrapper()
             {
                 Id = key,
                 Model = new Token()
@@ -46,7 +46,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public async Task<Token> GetAsync(string key)
         {
-            var result = await _bucket.GetAsync<TokenWrapper>(key);
+            var result = await _bucket.GetAsync<TokenWrapper>(TokenWrapper.TokenWrapperId(key));
             return result.Success ? result.Value.Model : null;
         }
 
@@ -57,7 +57,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task RemoveAsync(string key)
         {
-            return _bucket.RemoveAsync(key);
+            return _bucket.RemoveAsync(TokenWrapper.TokenWrapperId(key));
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace IdentityServer4.Couchbase.Services
 
             foreach (var key in query)
             {
-                RemoveAsync(key);
+                _bucket.RemoveAsync(key);
             }
 
             return Task.FromResult(0);

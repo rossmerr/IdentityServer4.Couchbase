@@ -37,9 +37,10 @@ namespace IdentityServer4.Couchbase.Services
         /// </returns>
         public Task<Client> FindClientByIdAsync(string clientId)
         {
+            var id = ClientWrapper.ClientWrapperId(clientId);
             var query =
                 from client in _context.Query<ClientWrapper>()
-                where client.Id == clientId && client.Model.Enabled
+                where client.Id == id && client.Model.Enabled
                 select client.Model;
 
             var first = query.SingleOrDefault();
@@ -48,7 +49,7 @@ namespace IdentityServer4.Couchbase.Services
 
         public Task StoreClientAsync(Client client)
         {            
-            return _bucket.InsertAsync(client.ClientId, new ClientWrapper(client.ClientId, client));
+            return _bucket.InsertAsync(ClientWrapper.ClientWrapperId(client.ClientId), new ClientWrapper(client.ClientId, client));
         }
     }
 }

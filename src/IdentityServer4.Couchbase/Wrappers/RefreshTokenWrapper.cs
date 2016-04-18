@@ -6,9 +6,13 @@ namespace IdentityServer4.Couchbase.Wrappers
     [DocumentTypeFilter(nameof(RefreshToken))]
     public class RefreshTokenWrapper
     {
+        public static string RefreshTokenWrapperId(string id)
+        {
+            return $"RefreshTokenWrapper:{id}".ToLowerInvariant();
+        }
         public RefreshTokenWrapper(string id, RefreshToken model) : this()
         {
-            Id = id;
+            Id = RefreshTokenWrapperId(id);
             Model = model;
         }
 

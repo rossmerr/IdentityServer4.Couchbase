@@ -6,9 +6,14 @@ namespace IdentityServer4.Couchbase.Wrappers
     [DocumentTypeFilter(nameof(AuthorizationCode))]
     public class AuthorizationCodeWrapper 
     {
+        public static string AuthorizationCodeId(string id)
+        {
+            return $"AuthorizationCode:{id}".ToLowerInvariant();
+        }
+
         public AuthorizationCodeWrapper(string id, AuthorizationCode model) : this()
         {
-            Id = id;
+            Id = AuthorizationCodeId(id);
             Model = model;
         }
         

@@ -6,6 +6,11 @@ namespace IdentityServer4.Couchbase.Wrappers
     [DocumentTypeFilter(nameof(Scope))]
     public class ScopeWrapper
     {
+        public static string ScopeWrapperId(string id)
+        {
+            return $"ScopeWrapper:{id}".ToLowerInvariant();
+        }
+
         public ScopeWrapper(string id, Scope model) : this()
         {
             Id = id;

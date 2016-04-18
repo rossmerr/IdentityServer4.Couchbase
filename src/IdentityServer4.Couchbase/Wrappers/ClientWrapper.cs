@@ -6,9 +6,14 @@ namespace IdentityServer4.Couchbase.Wrappers
     [DocumentTypeFilter(nameof(Client))]
     public class ClientWrapper
     {
+        public static string ClientWrapperId(string id)
+        {
+            return $"ClientWrapper:{id}".ToLowerInvariant();
+        }
+
         public ClientWrapper(string id, Client model) : this()
         {
-            Id = id;
+            Id = ClientWrapperId(id);
             Model = model;
         }
 

@@ -32,7 +32,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task StoreAsync(string key, AuthorizationCode value)
         {
-            return _bucket.InsertAsync(key, new AuthorizationCodeWrapper(key, value));
+            return _bucket.InsertAsync(AuthorizationCodeWrapper.AuthorizationCodeId(key), new AuthorizationCodeWrapper(key, value));
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public async Task<AuthorizationCode> GetAsync(string key)
         {
-            var result = await _bucket.GetAsync<AuthorizationCodeWrapper>(key);
+            var result = await _bucket.GetAsync<AuthorizationCodeWrapper>(AuthorizationCodeWrapper.AuthorizationCodeId(key));
             return result.Success ? result.Value.Model : null;
         }
 
@@ -53,7 +53,7 @@ namespace IdentityServer4.Couchbase.Services
         /// <returns></returns>
         public Task RemoveAsync(string key)
         {            
-            return _bucket.RemoveAsync(key);
+            return _bucket.RemoveAsync(AuthorizationCodeWrapper.AuthorizationCodeId(key));
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace IdentityServer4.Couchbase.Services
 
             foreach (var key in query)
             {
-                RemoveAsync(key);
+                _bucket.RemoveAsync(key);
             }
 
             return Task.FromResult(0);

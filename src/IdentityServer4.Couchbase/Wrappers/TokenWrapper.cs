@@ -8,6 +8,11 @@ namespace IdentityServer4.Couchbase.Wrappers
     [DocumentTypeFilter(nameof(Token))]
     public class TokenWrapper 
     {
+        public static string TokenWrapperId(string id)
+        {
+            return $"TokenWrapper:{id}".ToLowerInvariant();
+        }
+
         public TokenWrapper()
         {
             Type = nameof(Token);

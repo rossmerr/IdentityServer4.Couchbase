@@ -6,9 +6,14 @@ namespace IdentityServer4.Couchbase.Wrappers
     [DocumentTypeFilter(nameof(Consent))]
     public class ConsentWrapper
     {
+        public static string ConsentWrapperId(string id)
+        {
+            return $"ConsentWrapper:{id}".ToLowerInvariant();
+        }
+
         public ConsentWrapper(string id, Consent model) : this()
         {
-            Id = id;
+            Id = ConsentWrapperId(id);
             Model = model;
         }
 
