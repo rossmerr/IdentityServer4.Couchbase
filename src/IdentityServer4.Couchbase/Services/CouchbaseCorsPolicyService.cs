@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Couchbase.Linq;
@@ -36,9 +37,16 @@ namespace IdentityServer4.Couchbase.Services
             var query =
                 from client in _context.Query<ClientWrapper>()
                 from url in client.Model.AllowedCorsOrigins
-                select url.GetOrigin();
+                select url;
 
-            var result = query.Contains(origin, StringComparer.OrdinalIgnoreCase);
+            var urls = new List<string>();
+            foreach (var url in query)
+            {
+                urls.Add(GetOrigin(url));
+
+            }
+
+            var result = urls.Contains(origin, StringComparer.OrdinalIgnoreCase);
 
             if (result)
             {
@@ -50,6 +58,23 @@ namespace IdentityServer4.Couchbase.Services
             }
             
             return Task.FromResult(result);
+        }
+
+        public static string GetOrigin(string url)
+        {
+            if (url == null ||
+                (!url.StartsWith("http://", StringComparison.Ordinal) &&
+                 !url.StartsWith("https://", StringComparison.Ordinal))) return null;
+
+            var idx = url.IndexOf("//", StringComparison.Ordinal);
+            if (idx <= 0) return null;
+
+            idx = url.IndexOf("/", idx + 2, StringComparison.Ordinal);
+            if (idx >= 0)
+            {
+                url = url.Substring(0, idx);
+            }
+            return url;
         }
     }
 }
