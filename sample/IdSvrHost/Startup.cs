@@ -21,6 +21,8 @@ using IdentityServer4.Core.Models;
 using IdentityServer4.Core.Validation;
 using IdentityServer4.Couchbase.Services;
 using Microsoft.AspNet.Identity;
+using Serilog;
+using Serilog.Sinks.RollingFile;
 
 namespace IdSvrHost
 {
@@ -29,13 +31,19 @@ namespace IdSvrHost
         readonly IApplicationEnvironment _environment;
         readonly IConfiguration _configuration;
 
-        public Startup(IApplicationEnvironment environment)
+        public Startup(IApplicationEnvironment applicationEnvironment, IHostingEnvironment env)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.LiterateConsole()
+                .WriteTo.RollingFile(applicationEnvironment.ApplicationBasePath + "//Logs//Log")
+                .CreateLogger();
+
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json");
             _configuration = builder.Build();
 
-            _environment = environment;
+            _environment = applicationEnvironment;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -110,14 +118,36 @@ namespace IdSvrHost
                     "api1",
                     "api2"
                 },
-
-                //ClientSecrets = new List<Secret>()
-                //{
-                //    new Secret("test".Sha256(), "test")
-                //}
             };
-
             clientStore.StoreClientAsync(client);
+            
+            var device = new Client
+            {
+                ClientId = "device",
+                ClientName = "Device",
+                ClientUri = "http://identityserver.io",
+
+                Flow = Flows.Custom,
+                AllowedCustomGrantTypes = new List<string>()
+                {
+                    "device"
+                },
+                AllowedScopes = new List<string>
+                {
+                    StandardScopes.OpenId.Name,
+                    StandardScopes.Profile.Name,
+                    StandardScopes.Email.Name,
+                    StandardScopes.Roles.Name,
+
+                    "api1",
+                    "api2"
+                },
+                ClientSecrets = new List<Secret>()
+                {
+                    new Secret("test".Sha256(), "test")
+                }
+            };
+            clientStore.StoreClientAsync(device);
 
             // Scopes supported by IdentityServer
             scopeStore.StoreScopeAsync(StandardScopes.OpenId);
@@ -159,9 +189,9 @@ namespace IdSvrHost
                 }
             }, "Alice1#").Result;
 
-
-            loggerFactory.AddConsole(LogLevel.Verbose);
-            loggerFactory.AddDebug(LogLevel.Verbose);
+            loggerFactory.MinimumLevel = LogLevel.Information;
+            loggerFactory.AddSerilog();
+            loggerFactory.AddDebug();
 
             app.UseDeveloperExceptionPage();
             app.UseIISPlatformHandler();

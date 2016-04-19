@@ -51,3 +51,4 @@ Temporary Items
 sample/Mvc/node_modules/*
 src/Identity.Couchbase/node_modules/*
 src/IdentityServer4.Couchbase/node_modules/*
+sample/IdSvrHost/Logs/Log-20160419
