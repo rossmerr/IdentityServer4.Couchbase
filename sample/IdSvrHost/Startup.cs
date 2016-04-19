@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Couchbase;
 using Couchbase.Configuration.Client;
@@ -15,7 +16,9 @@ using Microsoft.Extensions.Logging;
 using IdentityServer4.Couchbase;
 using Microsoft.Extensions.Configuration;
 using Identity.Couchbase;
+using IdentityModel;
 using IdentityServer4.Core.Models;
+using IdentityServer4.Core.Validation;
 using IdentityServer4.Couchbase.Services;
 using Microsoft.AspNet.Identity;
 
@@ -46,6 +49,11 @@ namespace IdSvrHost
                         new Uri(_configuration.Get<string>("couchbase:server"))
                     }
             });
+
+            services.AddSingleton<ICustomGrantValidator, DeviceGrantValidator>();
+            //services.AddSingleton<IEnumerable<ICustomGrantValidator>>(p => new List<ICustomGrantValidator>() {
+            //    p.GetService<DeviceGrantValidator>()
+            //    });
 
             services.AddSingleton(p => ClusterHelper.GetBucket(_configuration.Get<string>("couchbase:bucket")));
             services.AddSingleton<IBucketContext>(p => new BucketContext(p.GetService<IBucket>()));
@@ -101,7 +109,12 @@ namespace IdSvrHost
 
                     "api1",
                     "api2"
-                }
+                },
+
+                //ClientSecrets = new List<Secret>()
+                //{
+                //    new Secret("test".Sha256(), "test")
+                //}
             };
 
             clientStore.StoreClientAsync(client);
@@ -132,15 +145,20 @@ namespace IdSvrHost
 
             scopeStore.StoreScopeAsync(apiScope);
 
+            app.UseIdentity();
 
             var userManager = app.ApplicationServices.GetService<UserManager<CouchbaseUser>>();
-            userManager.CreateAsync(new CouchbaseUser()
+            var result = userManager.CreateAsync(new CouchbaseUser()
             {
                 Username = "AliceSmith@email.com",
-                Email = "AliceSmith@email.com"
-            }, "alice");
+                Email = "AliceSmith@email.com",
+                SubjectId = Guid.NewGuid().ToString(),
+                Claims = new List<Claim>()
+                {
+                      new Claim(JwtClaimTypes.Name, "AliceSmith@email.com"),
+                }
+            }, "Alice1#").Result;
 
-            app.UseIdentity();
 
             loggerFactory.AddConsole(LogLevel.Verbose);
             loggerFactory.AddDebug(LogLevel.Verbose);

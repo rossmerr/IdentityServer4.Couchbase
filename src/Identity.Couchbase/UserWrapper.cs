@@ -4,7 +4,7 @@ using Couchbase.Linq.Filters;
 namespace Identity.Couchbase
 {
     [DocumentTypeFilter("user")]
-    class UserWrapper<TUser> where TUser : class, IUser
+    class UserWrapper<TUser> where TUser : IUser
     {
         public UserWrapper()
         {
@@ -18,6 +18,5 @@ namespace Identity.Couchbase
 
         public TUser User { get; set; }
         public string Type { get; set; }
-        public string Subject { get; set; }
     }
 }

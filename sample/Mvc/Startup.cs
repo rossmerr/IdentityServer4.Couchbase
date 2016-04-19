@@ -59,7 +59,7 @@ namespace Mvc
 
                 options.ClientId = "mvc_implicit";
                 options.ResponseType = "id_token token";
-
+               
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
                 options.Scope.Add("roles");

@@ -24,7 +24,7 @@ namespace IdentityServer4.Couchbase
             return builder;
         }
 
-        public static IIdentityServerBuilder AddCouchbaseUsers<TUser>(this IIdentityServerBuilder builder) where TUser : class, IUser
+        public static IIdentityServerBuilder AddCouchbaseUsers<TUser>(this IIdentityServerBuilder builder) where TUser : IUser
         {
             builder.Services.AddSingleton<IProfileService, AspNetIdentityProfileService<TUser>>();
             builder.Services.AddTransient<IResourceOwnerPasswordValidator, CouchbaseResourceOwnerPasswordValidator<TUser>>();

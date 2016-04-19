@@ -11,20 +11,14 @@ using Microsoft.AspNet.Identity;
 
 namespace Identity.Couchbase.Stores
 {
-    public interface ISubject<TUser> where TUser : class, IUser
-    {
-        Task<string> GetSubjectAsync(TUser user);
-    }
-
     public class UserStore<TUser, TRole> :
         IUserLoginStore<TUser>,
         IUserRoleStore<TUser>,
         IUserPasswordStore<TUser>,
         IUserSecurityStampStore<TUser>,
         IUserClaimStore<TUser>,
-        IUserLockoutStore<TUser>,
-        ISubject<TUser>
-        where TUser : class, IUser
+        IUserLockoutStore<TUser>
+        where TUser : IUser
         where TRole : class, IRole
     {
 
@@ -45,6 +39,7 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(bucket));
             }
             _context = context;
+            //_context.Configuration.Serializer
             _lookupNormalizer = lookupNormalizer;
             _bucket = bucket;
         }
@@ -228,12 +223,12 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var userWrapper = new UserWrapper<TUser>(user)
+            if (string.IsNullOrWhiteSpace(user.SubjectId))
             {
-                Subject = Guid.NewGuid().ToString()
-            };
+                user.SubjectId = Guid.NewGuid().ToString();
+            }
 
-            var result = await _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), userWrapper);
+            var result = await _bucket.InsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
 
@@ -248,6 +243,7 @@ namespace Identity.Couchbase.Stores
             }
             
             user.ConcurrencyStamp = Guid.NewGuid().ToString();
+
 
             var result = await _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
 
@@ -274,8 +270,11 @@ namespace Identity.Couchbase.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var result = await _bucket.GetAsync<UserWrapper<TUser>>(IdentityExtensions.ConvertEmailToId(userId, _lookupNormalizer));
-            return result.Value.User;
+            var results = from user in _context.Query<UserWrapper<TUser>>()
+                          where user.User.SubjectId == userId
+                          select user.User;
+
+            return results.FirstOrDefault();
         }
 
         public Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
@@ -696,20 +695,6 @@ namespace Identity.Couchbase.Stores
 
             user.LockoutEnabled = enabled;
             return Task.FromResult(0);
-        }
-
-        public async Task<string> GetSubjectAsync(TUser user)
-        {
-            ThrowIfDisposed();
-            
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            var result = await _bucket.GetAsync<UserWrapper<TUser>>(IdentityExtensions.ConvertEmailToId(user.Email, _lookupNormalizer));
-
-            return await Task.FromResult(result.Value.Subject);
         }
     }
 }
