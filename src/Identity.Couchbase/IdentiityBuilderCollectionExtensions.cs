@@ -10,7 +10,7 @@ namespace Identity.Couchbase
     {
         public static IdentityBuilder AddCouchbaseStores<TUser, TRole>(this IdentityBuilder builder)
             where TUser : IUser
-            where TRole : class, IRole
+            where TRole : IRole
         {
             builder.Services.AddSingleton<UserStore<TUser, TRole>>();
             builder.Services.AddSingleton<IUserStore<TUser>>(p => p.GetService<UserStore<TUser, TRole>>());

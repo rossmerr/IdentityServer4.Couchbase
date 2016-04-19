@@ -19,7 +19,7 @@ namespace Identity.Couchbase.Stores
         IUserClaimStore<TUser>,
         IUserLockoutStore<TUser>
         where TUser : IUser
-        where TRole : class, IRole
+        where TRole : IRole
     {
 
         readonly IBucket _bucket;

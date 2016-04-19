@@ -8,7 +8,7 @@ namespace IdentityServer4.Couchbase.Wrappers
     {
         public static string ClientWrapperId(string id)
         {
-            return $"ClientWrapper:{id}".ToLowerInvariant();
+            return $"Client:{id}".ToLowerInvariant();
         }
 
         public ClientWrapper(string id, Client model) : this()

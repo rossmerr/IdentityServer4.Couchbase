@@ -8,7 +8,7 @@ namespace IdentityServer4.Couchbase.Wrappers
     {
         public static string RefreshTokenWrapperId(string id)
         {
-            return $"RefreshTokenWrapper:{id}".ToLowerInvariant();
+            return $"RefreshToken:{id}".ToLowerInvariant();
         }
         public RefreshTokenWrapper(string id, RefreshToken model) : this()
         {

@@ -8,7 +8,7 @@ namespace IdentityServer4.Couchbase.Wrappers
     {
         public static string ScopeWrapperId(string id)
         {
-            return $"ScopeWrapper:{id}".ToLowerInvariant();
+            return $"Scope:{id}".ToLowerInvariant();
         }
 
         public ScopeWrapper(string id, Scope model) : this()

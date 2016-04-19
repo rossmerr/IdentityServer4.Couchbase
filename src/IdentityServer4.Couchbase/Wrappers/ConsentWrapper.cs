@@ -8,7 +8,7 @@ namespace IdentityServer4.Couchbase.Wrappers
     {
         public static string ConsentWrapperId(string id)
         {
-            return $"ConsentWrapper:{id}".ToLowerInvariant();
+            return $"Consent:{id}".ToLowerInvariant();
         }
 
         public ConsentWrapper(string id, Consent model) : this()

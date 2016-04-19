@@ -4,7 +4,7 @@ using Couchbase.Linq.Filters;
 namespace Identity.Couchbase
 {
     [DocumentTypeFilter("role")]
-    class RoleWrapper<TRole> where TRole : class, IRole
+    class RoleWrapper<TRole> where TRole : IRole
     {
         public RoleWrapper()
         {

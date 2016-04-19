@@ -1,14 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace Identity.Couchbase
 {
-    public interface IRole
+    public abstract class IRole
     {
-        string RoleId { get; set; }
-        string NormalizedName { get; set; }
-        string Name { get; set; }
-        string ConcurrencyStamp { get; set; }
-        ICollection<Claim> Claims { get; set; }
+        protected IRole()
+        {
+            Claims = new List<Claim>();
+        }
+
+        public string RoleId { get; set; }
+        public string NormalizedName { get; set; }
+        public string Name { get; set; }
+        public string ConcurrencyStamp { get; set; }
+
+        [JsonConverter(typeof(ClaimConverter))]
+        public ICollection<Claim> Claims { get; set; }
     }
 }

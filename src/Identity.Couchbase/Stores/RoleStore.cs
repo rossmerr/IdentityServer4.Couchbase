@@ -10,7 +10,7 @@ using Microsoft.AspNet.Identity;
 namespace Identity.Couchbase.Stores
 {
     public class RoleStore<TRole> : IRoleClaimStore<TRole> 
-        where TRole : class, IRole
+        where TRole : IRole
     {
         readonly IBucket _bucket;
         readonly ILookupNormalizer _lookupNormalizer;

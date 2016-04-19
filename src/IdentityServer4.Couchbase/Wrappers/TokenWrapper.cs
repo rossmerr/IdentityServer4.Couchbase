@@ -10,7 +10,7 @@ namespace IdentityServer4.Couchbase.Wrappers
     {
         public static string TokenWrapperId(string id)
         {
-            return $"TokenWrapper:{id}".ToLowerInvariant();
+            return $"Token:{id}".ToLowerInvariant();
         }
 
         public TokenWrapper()
