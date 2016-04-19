@@ -1,5 +1,3 @@
-# IdentityServer4.Couchbase
-
 # IdentityServer4.Couchbase & Identity.Couchbase
 
 [![Build status](https://ci.appveyor.com/api/projects/status/fhxd8ojan63nt4cx?svg=true)](https://ci.appveyor.com/project/rossmerr/identityserver4-couchbase)
