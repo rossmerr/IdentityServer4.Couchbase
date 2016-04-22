@@ -24,8 +24,6 @@ namespace Identity.Couchbase
         public string ConcurrencyStamp { get; set; }
         public ICollection<IRole> Roles { get; set; }
         public ICollection<UserLogin> Logins { get; set; }
-
-        [JsonConverter(typeof(ClaimConverter))]
         public ICollection<Claim> Claims { get; set; }
         public DateTimeOffset? LockoutEnd { get; set; }
         public int AccessFailedCount { get; set; }

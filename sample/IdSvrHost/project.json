@@ -19,7 +19,8 @@
     "Serilog.Extensions.Logging": "1.0.0-rc1-final-10092",
     "Serilog.Sinks.Literate": "1.2.0",
     "Serilog.Sinks.RollingFile": "2.0.0-beta-516",
-    "IdentityModel": "1.11.0"
+    "IdentityModel": "1.11.0",
+    "Couchbase.Extensions.Serialization": "1.0.0-*"
   },
 
   "commands": {

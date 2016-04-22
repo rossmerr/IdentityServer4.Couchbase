@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using Couchbase;
 using Couchbase.Configuration.Client;
 using Couchbase.Core;
+using Couchbase.Extensions.Serialization;
 using Couchbase.Linq;
 using Couchbase.Management;
 using Microsoft.AspNet.Builder;
@@ -55,13 +56,12 @@ namespace IdSvrHost
                 Servers = new List<Uri>()
                     {
                         new Uri(_configuration.Get<string>("couchbase:server"))
-                    }
+                    },
+                // We use our own serializer wrapper to inset the claims converter
+                Serializer = IdentityServerCouchbaseSerializer.GetSerializer()
             });
 
             services.AddSingleton<ICustomGrantValidator, DeviceGrantValidator>();
-            //services.AddSingleton<IEnumerable<ICustomGrantValidator>>(p => new List<ICustomGrantValidator>() {
-            //    p.GetService<DeviceGrantValidator>()
-            //    });
 
             services.AddSingleton(p => ClusterHelper.GetBucket(_configuration.Get<string>("couchbase:bucket")));
             services.AddSingleton<IBucketContext>(p => new BucketContext(p.GetService<IBucket>()));
@@ -142,9 +142,14 @@ namespace IdSvrHost
                     "api1",
                     "api2"
                 },
+                AlwaysSendClientClaims =  true,
                 ClientSecrets = new List<Secret>()
                 {
                     new Secret("test".Sha256(), "test")
+                },
+                Claims = new List<Claim>()
+                {
+                    new Claim("test2", "test2")
                 }
             };
             clientStore.StoreClientAsync(device);
@@ -161,7 +166,7 @@ namespace IdSvrHost
                 DisplayName = "API 1",
                 Description = "API 1 features and data",
                 Type = ScopeType.Identity,
-
+                IncludeAllClaimsForUser = true,
                 ScopeSecrets = new List<Secret>
                 {
                     new Secret("secret".Sha256())
@@ -169,7 +174,9 @@ namespace IdSvrHost
                 Claims = new List<ScopeClaim>
                 {
                     new ScopeClaim("role"),
-                    new ScopeClaim("ross")
+                    new ScopeClaim("ross"),
+                    new ScopeClaim("test"),
+                    new ScopeClaim("test2")
                 }
             };
 

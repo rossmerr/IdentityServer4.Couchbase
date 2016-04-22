@@ -15,8 +15,6 @@ namespace Identity.Couchbase
         public string NormalizedName { get; set; }
         public string Name { get; set; }
         public string ConcurrencyStamp { get; set; }
-
-        [JsonConverter(typeof(ClaimConverter))]
         public ICollection<Claim> Claims { get; set; }
     }
 }

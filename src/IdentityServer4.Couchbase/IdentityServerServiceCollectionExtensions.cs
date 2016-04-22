@@ -1,7 +1,14 @@
-﻿using Identity.Couchbase;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Couchbase.Configuration.Client;
+using Couchbase.Core.Serialization;
+using Identity.Couchbase;
 using IdentityServer4.Core.Services;
 using IdentityServer4.Core.Validation;
 using IdentityServer4.Couchbase.Services;
+using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -15,6 +22,7 @@ namespace IdentityServer4.Couchbase
             services.TryAddSingleton<IRefreshTokenStore, CouchbaseRefreshTokenStore>();
             services.TryAddSingleton<ITokenHandleStore, CouchbaseTokenHandleStore>();
             services.TryAddSingleton<IConsentStore, CouchbaseConsentStore>();
+
             return services;
         }
 
@@ -39,7 +47,7 @@ namespace IdentityServer4.Couchbase
             builder.Services.AddSingleton<ICouchbaseScopeStore, CouchbaseScopeStore>();
             builder.Services.AddSingleton<IScopeStore>(p => p.GetService<ICouchbaseScopeStore>());
 
-            builder.Services.AddSingleton<ICorsPolicyService, CouchbaseCorsPolicyService>();
+            builder.Services.AddSingleton<ICorsPolicyService, CouchbaseCorsPolicyService>();            
             return builder;
         }     
     }
