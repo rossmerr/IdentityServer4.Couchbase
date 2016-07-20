@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace Identity.Couchbase
 {

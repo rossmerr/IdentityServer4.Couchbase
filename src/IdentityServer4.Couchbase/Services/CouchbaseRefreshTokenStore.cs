@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Couchbase.Core;
 using Couchbase.Linq;
-using IdentityServer4.Core.Models;
-using IdentityServer4.Core.Services;
 using IdentityServer4.Couchbase.Wrappers;
+using IdentityServer4.Models;
+using IdentityServer4.Services;
 
 namespace IdentityServer4.Couchbase.Services
 {

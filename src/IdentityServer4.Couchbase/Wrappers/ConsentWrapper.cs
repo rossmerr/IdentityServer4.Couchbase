@@ -1,5 +1,5 @@
 ﻿using Couchbase.Linq.Filters;
-using IdentityServer4.Core.Models;
+using IdentityServer4.Models;
 
 namespace IdentityServer4.Couchbase.Wrappers
 {

@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Couchbase.Configuration.Client;
-using Couchbase.Core.Serialization;
 using Identity.Couchbase;
-using IdentityServer4.Core.Services;
-using IdentityServer4.Core.Validation;
 using IdentityServer4.Couchbase.Services;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting.Startup;
+using IdentityServer4.Services;
+using IdentityServer4.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

@@ -1,6 +1,6 @@
 ﻿using Couchbase.Linq.Filters;
-using IdentityServer4.Core.Models;
 using System.ComponentModel.DataAnnotations;
+using IdentityServer4.Models;
 using Newtonsoft.Json;
 
 namespace IdentityServer4.Couchbase.Wrappers

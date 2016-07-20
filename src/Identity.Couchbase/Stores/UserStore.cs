@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Couchbase.Core;
 using Couchbase.Linq;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace Identity.Couchbase.Stores
 {
@@ -210,7 +210,8 @@ namespace Identity.Couchbase.Stores
                 throw new ArgumentNullException(nameof(user));
             }
             user.NormalizedUserName = normalizedName;
-            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
+            return Task.FromResult(0);
+            // return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
@@ -265,7 +266,7 @@ namespace Identity.Couchbase.Stores
             return result.Success ? IdentityResult.Success : IdentityResult.Failed();
         }
 
-        public async Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -274,7 +275,7 @@ namespace Identity.Couchbase.Stores
                           where user.User.SubjectId == userId
                           select user.User;
 
-            return results.FirstOrDefault();
+            return Task.FromResult(results.FirstOrDefault());
         }
 
         public Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
@@ -302,7 +303,8 @@ namespace Identity.Couchbase.Stores
             }
 
             user.PasswordHash = passwordHash;
-            return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
+            return Task.FromResult(0);
+            //return _bucket.UpsertAsync(user.ConvertUserToId(_lookupNormalizer), new UserWrapper<TUser>(user));
         }
 
         public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken)

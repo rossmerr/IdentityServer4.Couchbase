@@ -2,18 +2,15 @@
   "version": "1.0.0",
   "description": "Identity.Couchbase Class Library",
   "authors": [ "Ross Merrigan" ],
-  "tags": [ "Couchbase", "Identity" ],
-  "projectUrl": "https://github.com/RossMerr/IdentityServer4.Couchbase",
-  "licenseUrl": "",
   "dependencies": {
-    "Microsoft.AspNet.Identity": "3.0.0-rc1-final"
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.AspNetCore.Identity": "1.0.0",
+    "CouchbaseCore": "1.0.2",
+    "Couchbase.Linq": "1.0.7"
   },
   "frameworks": {
-    "net451": {
-      "dependencies": {
-        "CouchbaseNetClient": "2.2.7",
-        "Linq2Couchbase": "1.1.0.2"
-      }
+    "netstandard1.6": {
+      "imports": "dnxcore50"
     }
   }
 }

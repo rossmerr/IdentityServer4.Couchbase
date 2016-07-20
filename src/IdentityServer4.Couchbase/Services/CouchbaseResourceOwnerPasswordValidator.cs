@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Identity.Couchbase;
-using IdentityServer4.Core.Validation;
-using Microsoft.AspNet.Identity;
+using IdentityServer4.Validation;
+using Microsoft.AspNetCore.Identity;
 
 namespace IdentityServer4.Couchbase.Services
 {

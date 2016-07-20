@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Couchbase.Linq;
-using IdentityServer4.Core.Services;
 using IdentityServer4.Couchbase.Wrappers;
+using IdentityServer4.Services;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer4.Couchbase.Services

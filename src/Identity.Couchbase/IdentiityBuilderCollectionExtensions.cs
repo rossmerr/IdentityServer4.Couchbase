@@ -1,6 +1,6 @@
 ﻿using Identity.Couchbase.Stores;
-using Microsoft.AspNet.Authentication.Cookies;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

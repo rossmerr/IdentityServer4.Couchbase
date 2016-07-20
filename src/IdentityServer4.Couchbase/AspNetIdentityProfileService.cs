@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Identity.Couchbase;
-using IdentityServer4.Core.Models;
-using IdentityServer4.Core.Services;
-using Microsoft.AspNet.Identity;
+using IdentityServer4.Models;
+using IdentityServer4.Services;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace IdentityServer4.Couchbase

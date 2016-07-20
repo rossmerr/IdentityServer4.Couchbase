@@ -2,26 +2,19 @@
   "version": "1.0.0",
   "description": "IdentityServer4.Couchbase Class Library",
   "authors": [ "Ross Merrigan" ],
-  "tags": [ "Couchbase", "IdentityServer4" ],
-  "projectUrl": "https://github.com/RossMerr/IdentityServer4.Couchbase",
-  "licenseUrl": "",
   "dependencies": {
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Identity": "3.0.0-rc1-final",
-    "Identity.Couchbase": "1.0.0-*",
-    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final",
-    "IdentityServer4": "1.0.0-beta1-update1"
+    "IdentityServer4": "1.0.0-beta5",
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0",
+    "Microsoft.AspNetCore.Hosting": "1.0.0",
+    "Microsoft.AspNetCore.Identity": "1.0.0",
+    "CouchbaseCore": "1.0.2",
+    "Couchbase.Linq": "1.0.7",
+    "Identity.Couchbase": "1.0.0-*"
   },
   "frameworks": {
-    "net451": {
-      "dependencies": {
-        "CouchbaseNetClient": "2.2.7",
-        "Linq2Couchbase": "1.1.0.2",
-        "Remotion.Linq": "1.15.15"
-      },
-      "frameworkAssemblies": {
-        "System.ComponentModel.DataAnnotations": "4.0.0.0"
-      }
+    "netstandard1.6": {
+      "imports": "dnxcore50"
     }
   }
 }
