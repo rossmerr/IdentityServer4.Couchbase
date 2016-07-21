@@ -52,3 +52,9 @@ sample/Mvc/node_modules/*
 src/Identity.Couchbase/node_modules/*
 src/IdentityServer4.Couchbase/node_modules/*
 sample/IdSvrHost/Logs/Log-20160419
+src/Couchbase.Extensions.Serialization/bin/*
+src/Couchbase.Extensions.Serialization/bin/*
+src/Identity.Couchbase/bin/*
+src/IdentityServer4.Couchbase/bin/*
+src/IdSvrHost/bin/*
+src/Mvc/bin/*
