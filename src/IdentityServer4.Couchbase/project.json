@@ -10,7 +10,7 @@
     "Microsoft.AspNetCore.Identity": "1.0.0",
     "CouchbaseCore": "1.0.2",
     "Couchbase.Linq": "1.0.7",
-    "Identity.Couchbase": "1.0.0-*"
+    "Identity.Couchbase": "1.0.1"
   },
   "frameworks": {
     "netstandard1.6": {
