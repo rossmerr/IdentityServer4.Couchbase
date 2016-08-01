@@ -58,3 +58,4 @@ src/Identity.Couchbase/bin/*
 src/IdentityServer4.Couchbase/bin/*
 src/IdSvrHost/bin/*
 src/Mvc/bin/*
+src/Couchbase.Extensions.Serialization/node_modules/*
