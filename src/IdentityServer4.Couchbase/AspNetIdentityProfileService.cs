@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Identity.Couchbase;
+using IdentityModel;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Identity;
@@ -40,8 +43,14 @@ namespace IdentityServer4.Couchbase
             {
                 throw new ArgumentException("Invalid subject identifier");
             }
-            
-            var claims = user.Claims;
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtClaimTypes.Subject, user.SubjectId),
+            };
+
+
+            claims.AddRange(user.Claims);
             if (requestedClaimTypes != null && requestedClaimTypes.Any())
             {
                 claims = claims.Where(x => requestedClaimTypes.Contains(x.Type)).ToList();
