@@ -70,3 +70,4 @@ src/IdSvrHost/bin/*
 src/IdSvrHost/obj/*
 src/Mvc/bin/*
 src/Mvc/obj/*
+src/Couchbase.Extensions.Serialization/obj/*

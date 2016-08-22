@@ -12,7 +12,6 @@
     "Microsoft.Extensions.Logging": "1.0.0",
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "Microsoft.Extensions.Logging.Debug": "1.0.0",
-    "Identity.Couchbase": "1.0.1",
     "IdentityServer4": "1.0.0-beta5",
     "IdentityServer4.Couchbase": "1.0.0-*",
     "IdentityModel": "2.0.0-beta5",
