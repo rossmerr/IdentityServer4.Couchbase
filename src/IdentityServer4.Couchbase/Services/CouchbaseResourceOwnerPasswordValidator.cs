@@ -31,7 +31,7 @@ namespace IdentityServer4.Couchbase.Services
 
             if (result)
             {
-                return await Task.FromResult(new CustomGrantValidationResult(user.Username, "password"));
+                return await Task.FromResult(new CustomGrantValidationResult(user.SubjectId, "password"));
             }
 
             return await Task.FromResult(new CustomGrantValidationResult("Invalid username or password"));
