@@ -65,3 +65,8 @@ src/Couchbase.Extensions.Serialization/bin/*
 src/Couchbase.Extensions.Serialization/bin/*
 src/Couchbase.Extensions.Serialization/bin/*
 src/Couchbase.Extensions.Serialization/bin/*
+src/IdentityServer4.Couchbase/obj/*
+src/IdSvrHost/bin/*
+src/IdSvrHost/obj/*
+src/Mvc/bin/*
+src/Mvc/obj/*

@@ -48,9 +48,7 @@ namespace IdSvrHost
             {
                 var loggerFactory = p.GetService<ILoggerFactory>();
 
-                var logger = loggerFactory.CreateLogger("Couchbase");
-
-                ClusterHelper.Initialize(new ClientConfiguration(logger)
+                ClusterHelper.Initialize(new ClientConfiguration(loggerFactory)
                 {
                     Servers = new List<Uri>()
                     {
@@ -58,7 +56,7 @@ namespace IdSvrHost
                     },
                     // We use our own serializer wrapper to inset the claims converter
                     Serializer = IdentityServerCouchbaseSerializer.GetSerializer()
-                }, logger);
+                }, loggerFactory);
 
                 return ClusterHelper.GetBucket(_configuration["couchbase:bucket"]);
             });
@@ -68,7 +66,7 @@ namespace IdSvrHost
 
                 var logger = loggerFactory.CreateLogger("Couchbase.Linq");
 
-                return new BucketContext(p.GetService<IBucket>(), logger);
+                return new BucketContext(p.GetService<IBucket>(), loggerFactory);
             });
             services.AddSingleton(p => p.GetService<IBucket>().CreateManager(_configuration["couchbase:username"],
                     _configuration["couchbase:password"]));
