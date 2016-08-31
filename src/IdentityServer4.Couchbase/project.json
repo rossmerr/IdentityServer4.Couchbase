@@ -8,7 +8,7 @@
     "Microsoft.Extensions.DependencyInjection": "1.0.0",
     "Microsoft.AspNetCore.Hosting": "1.0.0",
     "Microsoft.AspNetCore.Identity": "1.0.0",
-    "Identity.Couchbase": "1.0.4"
+    "Identity.Couchbase": "1.0.5"
   },
   "frameworks": {
     "netstandard1.6": {
